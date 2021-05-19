@@ -1,16 +1,13 @@
-# wake_together
+# WakeTogether
 
-A social alarm app that lets you wake up with your friends.
+A social alarm app that lets you wake up with your friends. This is an Orbital 2021 Project by Chua Kai Jun and Myron Neo.
 
-## Getting Started
+## About
 
-This project is a starting point for a Flutter application.
+Wake Together lets you share alarms with your friends and wake together on time. 
 
-A few resources to get you started if this is your first Flutter project:
+### More
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+Refer to our [Project Proposal](https://docs.google.com/document/d/1yBRkzXa2I0XhfQaHC_-BirTEc4g4GvyUV32h0kfbEbs/).
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+*More to come!!*
