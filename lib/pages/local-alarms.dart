@@ -154,15 +154,17 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
 
   /// Provides the dashed Alarm Adder to place at the end of the list.
   Widget _getAlarmAdder(List<Alarm> alarms) {
+    Color _color = Theme.of(context).colorScheme.onSurface.withAlpha(127);
     return Container(
         margin: EdgeInsets.only(left: 24, right: 24, top: 8, bottom: 8),
         child: InkWell(
             borderRadius: BorderRadius.circular(_cardRadius),
             onTap: () => newAlarm(alarms),
             child: DottedBorder(
-                strokeWidth: 2,
+                strokeWidth: 4,
                 dashPattern: [10, 5],
                 radius: Radius.circular(_cardRadius),
+                color: _color,
                 customPath: (size) {
                   return Path()
                     ..moveTo(_cardRadius, 0)
@@ -181,19 +183,20 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                 },
                 child: Container(
                   padding:
-                      EdgeInsets.only(left: 24, right: 24, top: 24, bottom: 24),
+                      EdgeInsets.only(left: 24, right: 24, top: 36, bottom: 36),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.add,
                         size: 32,
+                        color: _color,
                       ),
                       Text("Add Alarm",
                           style: GoogleFonts.openSans(
                               fontWeight: FontWeight.bold,
                               fontSize: 24,
-                              color: Theme.of(context).colorScheme.onSurface))
+                              color: _color))
                     ],
                   ),
                 ))));
