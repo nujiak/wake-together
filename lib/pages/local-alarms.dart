@@ -86,6 +86,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
               if (snapshot.hasData) {
 
                 List<Alarm> alarms = snapshot.data!;
+                alarms.add(nullAlarm);
 
                 return ListView.builder(
                   itemCount: alarms.length,
