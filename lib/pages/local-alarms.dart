@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:wake_together/database.dart';
 
 import '../alarm.dart';
+import '../constants.dart';
 
 /// Widget page for Local Alarms
 class LocalAlarmsPage extends StatefulWidget {
@@ -26,21 +25,27 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
   static final nullAlarm = Alarm(
       description: "null", time: TimeOfDay(hour: 0, minute: 0), days: Set());
 
-  /// Adds an alarm to the database
+  /// Adds an alarm to the database.
   Future<void> addAlarm(Alarm alarm) async {
     await DatabaseProvider().insertAlarm(alarm);
     setState(() {});
   }
 
-  /// Removes an alarm from the database
+  /// Removes an alarm from the database.
   Future<void> deleteAlarm(Alarm alarm) async {
     await DatabaseProvider().deleteAlarm(alarm.id!);
     setState(() {});
   }
 
+  /// Updates an alarm in the database.
+  Future<void> updateAlarm(Alarm alarm) async {
+    await DatabaseProvider().updateAlarm(alarm);
+    setState(() {});
+  }
+
   /// Searches for the appropriate insertion index for an alarm.
   ///
-  /// Uses binary search to find the posiiton to insert a new alarm such that
+  /// Uses binary search to find the position to insert a new alarm such that
   /// the list of alarms remains sorted. Used for list animation.
   int _findInsertPosition(TimeOfDay time, List<Alarm> alarms) {
     double _toDouble(TimeOfDay time) => time.hour + time.minute / 60.0;
@@ -84,7 +89,6 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
             initialData: <Alarm>[],
             builder: (context, AsyncSnapshot<List<Alarm>> snapshot) {
               if (snapshot.hasData) {
-
                 List<Alarm> alarms = snapshot.data!;
                 alarms.add(nullAlarm);
 
@@ -108,7 +112,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
 
     return Container(
       margin: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
-      padding: EdgeInsets.only(left: 24, right: 24, top: 48, bottom: 48),
+      padding: EdgeInsets.only(left: 24, right: 24, top: 48, bottom: 24),
       decoration: BoxDecoration(
           gradient: RadialGradient(
               center: Alignment(-0.8, -0.5),
@@ -124,8 +128,8 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
               blurRadius: 4,
             )
           ]),
-      child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(alarm.time.format(context),
@@ -133,13 +137,22 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                     fontWeight: FontWeight.bold,
                     fontSize: 32,
                     color: Colors.white)),
-            Spacer(),
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.white),
-              onPressed: () {
-                deleteAlarm(alarm);
-              },
-            )
+            Container(
+              margin: EdgeInsets.only(top: 8),
+              child: Row(
+                  children: Days.all
+                      .map((day) => _getDayCheckbox(alarm, day))
+                      .toList()),
+            ),
+            Container(
+                margin: EdgeInsets.only(top: 8),
+                alignment: Alignment.topRight,
+                child: IconButton(
+                  icon: Icon(Icons.delete, color: Colors.white),
+                  onPressed: () {
+                    deleteAlarm(alarm);
+                  },
+                ))
           ]),
     );
   }
@@ -189,5 +202,36 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                     ],
                   ),
                 ))));
+  }
+
+  /// Provides a single day checkbox for a given alarm and day.
+  ///
+  /// Used in _getListItem.
+  Widget _getDayCheckbox(Alarm alarm, Days day) {
+    bool _selected = alarm.days.contains(day);
+    return Expanded(
+        child: InkWell(
+            onTap: () {
+              alarm.days.contains(day)
+                  ? alarm.days.remove(day)
+                  : alarm.days.add(day);
+              updateAlarm(alarm);
+            },
+            child: Container(
+              padding: EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                border: Border.all(width: 1, color: Colors.white),
+                shape: BoxShape.circle,
+                color: _selected
+                    ? Colors.white.withAlpha(100)
+                    : Colors.transparent,
+              ),
+              child: Center(
+                child: Text(
+                  Days.shortStrings[day]!,
+                  style: GoogleFonts.openSans(color: Colors.white),
+                ),
+              ),
+            )));
   }
 }

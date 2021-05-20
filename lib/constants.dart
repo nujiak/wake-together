@@ -1,7 +1,9 @@
 import 'dart:core';
 class Days {
+  /// Prime number held by the day.
   final int value;
 
+  /// Private constructor to prevent other Days from being created.
   const Days._(this.value);
 
   static const Days MONDAY = Days._(3);
@@ -12,6 +14,18 @@ class Days {
   static const Days SATURDAY = Days._(17);
   static const Days SUNDAY = Days._(19);
 
+  /// A set of all Days.
   static const Set<Days>all = {MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY};
+
+  /// A map of each Day to a one-letter String.
+  static const Map<Days, String> shortStrings = {
+    MONDAY: "M",
+    TUESDAY: "T",
+    WEDNESDAY: "W",
+    THURSDAY: "T",
+    FRIDAY: "F",
+    SATURDAY: "S",
+    SUNDAY: "S",
+  };
 }
 

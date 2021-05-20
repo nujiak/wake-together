@@ -78,6 +78,6 @@ class Alarm {
 
   @override
   String toString() {
-    return "id: $id, description: $description, hour: ${this.time.hour}, minute: ${this.time.minute}";
+    return "id: $id, description: $description, hour: ${this.time.hour}, minute: ${this.time.minute}, daysInt: ${getDaysInt(days)}";
   }
 }
