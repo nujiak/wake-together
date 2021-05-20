@@ -21,10 +21,6 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
   /// Radius for rounded cards.
   static const double _cardRadius = 32;
 
-  /// Static Alarm to represent Alarm Adder at the end of list
-  static final nullAlarm = Alarm(
-      description: "null", time: TimeOfDay(hour: 0, minute: 0), days: Set());
-
   /// Adds an alarm to the database.
   Future<void> addAlarm(Alarm alarm) async {
     await DatabaseProvider().insertAlarm(alarm);
@@ -90,11 +86,10 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
             builder: (context, AsyncSnapshot<List<Alarm>> snapshot) {
               if (snapshot.hasData) {
                 List<Alarm> alarms = snapshot.data!;
-                alarms.add(nullAlarm);
 
                 return ListView.builder(
-                  itemCount: alarms.length,
-                  itemBuilder: (context, index) => alarms[index] != nullAlarm
+                  itemCount: alarms.length + 1,
+                  itemBuilder: (context, index) => index < alarms.length
                       ? _getListItem(alarms, index)
                       : _getAlarmAdder(alarms),
                 );
