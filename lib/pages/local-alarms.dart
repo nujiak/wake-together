@@ -1,54 +1,110 @@
+import 'dart:io';
+
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wake_together/main.dart';
+import 'package:wake_together/database.dart';
 
 import '../alarm.dart';
 
+/// Widget page for Local Alarms
 class LocalAlarmsPage extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => _LocalAlarmsPage();
+  State<StatefulWidget> createState() => _LocalAlarmsPageState();
 }
 
-class _LocalAlarmsPage extends State<LocalAlarmsPage> with AutomaticKeepAliveClientMixin {
+class _LocalAlarmsPageState extends State<LocalAlarmsPage>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
+  /// Radius for rounded cards.
   static const double _cardRadius = 32;
-  List localAlarms = <Alarm>[];
-  final _alarmListKey = GlobalKey<AnimatedListState>();
 
-  void addAlarm(Alarm alarm) {
-    _alarmListKey.currentState?.insertItem(localAlarms.length);
-    localAlarms.add(alarm);
+  /// Static Alarm to represent Alarm Adder at the end of list
+  static final nullAlarm = Alarm(
+      description: "null", time: TimeOfDay(hour: 0, minute: 0), days: Set());
+
+  /// Adds an alarm to the database
+  Future<void> addAlarm(Alarm alarm) async {
+    await DatabaseProvider().insertAlarm(alarm);
+    setState(() {});
   }
 
-  void newAlarm() async {
-    Future<TimeOfDay?> selectedTimeFuture = showTimePicker(context: context, initialTime: TimeOfDay.now());
+  /// Removes an alarm from the database
+  Future<void> deleteAlarm(Alarm alarm) async {
+    await DatabaseProvider().deleteAlarm(alarm.id!);
+    setState(() {});
+  }
+
+  /// Searches for the appropriate insertion index for an alarm.
+  ///
+  /// Uses binary search to find the posiiton to insert a new alarm such that
+  /// the list of alarms remains sorted. Used for list animation.
+  int _findInsertPosition(TimeOfDay time, List<Alarm> alarms) {
+    double _toDouble(TimeOfDay time) => time.hour + time.minute / 60.0;
+
+    int _binarySearch(int start, int end) {
+      if (start >= end) {
+        return end;
+      }
+      final int mid = start + (end - start) ~/ 2;
+      if (_toDouble(alarms[mid].time) <= _toDouble(time)) {
+        return _binarySearch(mid + 1, end);
+      } else {
+        return _binarySearch(start, mid);
+      }
+    }
+
+    if (alarms.length == 1) {
+      return 0;
+    }
+    return _binarySearch(0, alarms.length - 2);
+  }
+
+  /// Shows a Time Picker for user to select the time for a new alarm.
+  Future<void> newAlarm(List<Alarm> alarms) async {
+    Future<TimeOfDay?> selectedTimeFuture =
+        showTimePicker(context: context, initialTime: TimeOfDay.now());
     TimeOfDay? selectedTime = await selectedTimeFuture;
     if (selectedTime != null) {
-      addAlarm(Alarm(id: 0, time: selectedTime, description: '', days: Set()));
+      await addAlarm(Alarm(time: selectedTime, description: '', days: Set()));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Call build from super for AutomaticKeepAliveClientMixin
     super.build(context);
+
     return Scaffold(
-        body: AnimatedList(
-          key: _alarmListKey,
-          initialItemCount: localAlarms.length + 1,
-            itemBuilder: (context, index, animation) =>
-                SlideTransition(
-                position: animation.drive(Tween<Offset>(begin: const Offset(-1, 0), end: Offset(0, 0))),
-                child: index < localAlarms.length
-                    ? _getListItem(index)
-                    : _getAlarmAdder())));
+        body: FutureBuilder<List<Alarm>>(
+            future: DatabaseProvider().getAlarms(),
+            initialData: <Alarm>[],
+            builder: (context, AsyncSnapshot<List<Alarm>> snapshot) {
+              if (snapshot.hasData) {
+
+                List<Alarm> alarms = snapshot.data!;
+
+                return ListView.builder(
+                  itemCount: alarms.length,
+                  itemBuilder: (context, index) => alarms[index] != nullAlarm
+                      ? _getListItem(alarms, index)
+                      : _getAlarmAdder(alarms),
+                );
+              } else if (snapshot.hasError) {
+                return Center(child: Text("Error: ${snapshot.error}"));
+              } else {
+                return Center(child: CircularProgressIndicator());
+              }
+            }));
   }
 
-  Widget _getListItem(int index) {
-    Alarm alarm = localAlarms[index];
+  /// Provides the list item widget for an alarm.
+  Widget _getListItem(List<Alarm> alarms, int index) {
+    Alarm alarm = alarms[index];
+
     return Container(
       margin: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
       padding: EdgeInsets.only(left: 24, right: 24, top: 48, bottom: 48),
@@ -58,7 +114,8 @@ class _LocalAlarmsPage extends State<LocalAlarmsPage> with AutomaticKeepAliveCli
               radius: 3,
               colors: [
                 Colors.blue[500] ?? Colors.blue,
-                Colors.blue[900] ?? Colors.blue]),
+                Colors.blue[900] ?? Colors.blue
+              ]),
           borderRadius: BorderRadius.all(Radius.circular(_cardRadius)),
           boxShadow: [
             BoxShadow(
@@ -66,25 +123,33 @@ class _LocalAlarmsPage extends State<LocalAlarmsPage> with AutomaticKeepAliveCli
               blurRadius: 4,
             )
           ]),
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(alarm.time.format(context),
                 style: GoogleFonts.openSans(
                     fontWeight: FontWeight.bold,
                     fontSize: 32,
-                    color: Colors.white))
+                    color: Colors.white)),
+            Spacer(),
+            IconButton(
+              icon: Icon(Icons.delete, color: Colors.white),
+              onPressed: () {
+                deleteAlarm(alarm);
+              },
+            )
           ]),
     );
   }
 
-  Widget _getAlarmAdder() {
+  /// Provides the dashed Alarm Adder to place at the end of the list.
+  Widget _getAlarmAdder(List<Alarm> alarms) {
     return Container(
         margin: EdgeInsets.only(left: 24, right: 24, top: 8, bottom: 8),
         child: InkWell(
             borderRadius: BorderRadius.circular(_cardRadius),
-            onTap: newAlarm,
+            onTap: () => newAlarm(alarms),
             child: DottedBorder(
                 strokeWidth: 2,
                 dashPattern: [10, 5],

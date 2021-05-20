@@ -31,7 +31,6 @@ class Pages extends StatefulWidget {
 
 class _PagesState extends State<Pages> {
   int _currentPageIndex = 0;
-  Widget localAlarmsPage = LocalAlarmsPage();
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +61,7 @@ class _PagesState extends State<Pages> {
         onPageChanged: (index) => setState(() => _currentPageIndex = index),
         scrollDirection: Axis.horizontal,
         controller: controller,
-        children: <Widget>[localAlarmsPage, LocalAlarmsPage()],
+        children: <Widget>[LocalAlarmsPage(), Center(child: Text("Coming soon..."),)],
       ),
     );
   }
