@@ -24,10 +24,12 @@ dependencies:
   flutter:
     sdk: flutter
 
+  flutter_local_notifications:
+  flutter_native_timezone: ^1.0.10
   dotted_border: ^2.0.0
   google_fonts: ^2.1.0
-  sqflite:
   path:
+  sqflite:
 
 
   # The following adds the Cupertino Icons font to your application.

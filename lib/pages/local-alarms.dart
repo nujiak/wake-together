@@ -2,6 +2,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wake_together/alarm-helper.dart';
 import 'package:wake_together/database.dart';
 
 import '../alarm.dart';
@@ -23,20 +24,21 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
 
   /// Adds an alarm to the database.
   Future<void> addAlarm(Alarm alarm) async {
-    await DatabaseProvider().insertAlarm(alarm);
-    setState(() {});
+    DatabaseProvider()
+        .insertAlarm(alarm)
+        .then((_) => setState(() {}));
   }
 
   /// Removes an alarm from the database.
-  Future<void> deleteAlarm(Alarm alarm) async {
-    await DatabaseProvider().deleteAlarm(alarm.id!);
-    setState(() {});
+  void deleteAlarm(Alarm alarm) {
+    DatabaseProvider()
+        .deleteAlarm(alarm.id!)
+        .then((_) => setState(() {}));
   }
 
   /// Updates an alarm in the database.
-  Future<void> updateAlarm(Alarm alarm) async {
-    await DatabaseProvider().updateAlarm(alarm);
-    setState(() {});
+  void updateAlarm(Alarm alarm) {
+    DatabaseProvider().updateAlarm(alarm);
   }
 
   /// Searches for the appropriate insertion index for an alarm.
@@ -86,6 +88,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
             builder: (context, AsyncSnapshot<List<Alarm>> snapshot) {
               if (snapshot.hasData) {
                 List<Alarm> alarms = snapshot.data!;
+                registerAllAlarms(context, alarms);
 
                 return ListView.builder(
                   itemCount: alarms.length + 1,
@@ -214,6 +217,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                   ? alarm.days.remove(day)
                   : alarm.days.add(day);
               updateAlarm(alarm);
+              setState(() {});
             },
             child: Container(
               padding: EdgeInsets.all(4),

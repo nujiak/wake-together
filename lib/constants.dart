@@ -27,5 +27,15 @@ class Days {
     SATURDAY: "S",
     SUNDAY: "S",
   };
+
+  static const Map<Days, int> DATETIME_WEEKDAY = {
+    MONDAY: DateTime.monday,
+    TUESDAY: DateTime.tuesday,
+    WEDNESDAY: DateTime.wednesday,
+    THURSDAY: DateTime.thursday,
+    FRIDAY: DateTime.friday,
+    SATURDAY: DateTime.saturday,
+    SUNDAY: DateTime.sunday,
+  };
 }
 
