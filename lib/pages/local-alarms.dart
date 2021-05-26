@@ -1,7 +1,8 @@
+import 'dart:ui';
+
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:wake_together/alarm-helper.dart';
 import 'package:wake_together/database.dart';
 
@@ -24,16 +25,12 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
 
   /// Adds an alarm to the database.
   Future<void> addAlarm(Alarm alarm) async {
-    DatabaseProvider()
-        .insertAlarm(alarm)
-        .then((_) => setState(() {}));
+    DatabaseProvider().insertAlarm(alarm).then((_) => setState(() {}));
   }
 
   /// Removes an alarm from the database.
   void deleteAlarm(Alarm alarm) {
-    DatabaseProvider()
-        .deleteAlarm(alarm.id!)
-        .then((_) => setState(() {}));
+    DatabaseProvider().deleteAlarm(alarm.id!).then((_) => setState(() {}));
   }
 
   /// Updates an alarm in the database.
@@ -107,63 +104,59 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
   /// Provides the list item widget for an alarm.
   Widget _getListItem(List<Alarm> alarms, int index) {
     Alarm alarm = alarms[index];
+    Color _textColor = Theme.of(context).colorScheme.onSurface;
+    Color _textColorDisabled = Theme.of(context).colorScheme.onSurface.withAlpha(100);
 
     return Container(
       margin: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
-      padding: EdgeInsets.only(left: 24, right: 24, top: 48, bottom: 24),
+      padding: EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 24),
       decoration: BoxDecoration(
           gradient: RadialGradient(
               center: Alignment(-0.8, -0.5),
               radius: 3,
-              colors: [
-                Colors.blue[500] ?? Colors.blue,
-                Colors.blue[900] ?? Colors.blue
-              ]),
+              colors: [Colors.grey[800]!, Colors.grey[900]!]),
           borderRadius: BorderRadius.all(Radius.circular(_cardRadius)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.5),
-              blurRadius: 4,
-            )
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+                offset: Offset(2, 2))
           ]),
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(alarm.time.format(context),
-                style: GoogleFonts.openSans(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 32,
-                    color: Colors.white)),
+                style: Theme.of(context)
+                    .textTheme
+                    .headline3!
+                    .copyWith(color: _textColor)),
             Container(
-              margin: EdgeInsets.only(top: 8, bottom: 8),
+              height: 36,
+              margin: EdgeInsets.only(top: 8),
               child: Row(
-                  children: Days.all
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: Days.allList
                       .map((day) => _getDayCheckbox(alarm, day))
                       .toList()),
             ),
             Container(
-              margin: EdgeInsets.only(top: 8, bottom: 8),
               child: TextFormField(
                 decoration: InputDecoration(
                   border: UnderlineInputBorder(),
-                  labelText: "Description",
-                  labelStyle: GoogleFonts.openSans(
-                    color: Colors.white,
-                  ),
-                  enabledBorder: const UnderlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white)
-                  ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white)
-                  ),
+                  labelText: "Note",
+                  labelStyle: TextStyle(color: _textColorDisabled),
+                  enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: _textColorDisabled)),
+                  focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: _textColorDisabled)),
                 ),
-                cursorColor: Colors.white,
-                style: GoogleFonts.openSans(color: Colors.white),
+                cursorColor: _textColorDisabled,
                 initialValue: alarm.description,
                 onChanged: (newDescription) {
                   alarm.description = newDescription;
-                  updateAlarm(alarm); // Update database without refreshing state
+                  updateAlarm(
+                      alarm); // Update database without refreshing state
                 },
               ),
             ),
@@ -171,7 +164,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                 margin: EdgeInsets.only(top: 8),
                 alignment: Alignment.topRight,
                 child: IconButton(
-                  icon: Icon(Icons.delete, color: Colors.white),
+                  icon: Icon(Icons.delete),
                   onPressed: () {
                     deleteAlarm(alarm);
                   },
@@ -221,10 +214,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                         color: _color,
                       ),
                       Text("Add Alarm",
-                          style: GoogleFonts.openSans(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 24,
-                              color: _color))
+                          style: TextStyle(fontSize: 24, color: _color))
                     ],
                   ),
                 ))));
@@ -235,8 +225,9 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
   /// Used in _getListItem.
   Widget _getDayCheckbox(Alarm alarm, Days day) {
     bool _selected = alarm.days.contains(day);
-    return Expanded(
-        child: InkWell(
+
+    return
+        InkWell(
             onTap: () {
               alarm.days.contains(day)
                   ? alarm.days.remove(day)
@@ -245,20 +236,31 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
               setState(() {});
             },
             child: Container(
-              padding: EdgeInsets.all(4),
+              height: 32,
+              width: 32,
               decoration: BoxDecoration(
-                border: Border.all(width: 1, color: Colors.white),
+                border: Border.all(
+                    width: .5,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withAlpha(_selected ? 0 : 100)),
                 shape: BoxShape.circle,
                 color: _selected
-                    ? Colors.white.withAlpha(100)
+                    ? Theme.of(context).colorScheme.onSurface.withAlpha(100)
                     : Colors.transparent,
               ),
               child: Center(
                 child: Text(
                   Days.shortStrings[day]!,
-                  style: GoogleFonts.openSans(color: Colors.white),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withAlpha(_selected ? 255 : 100)),
                 ),
               ),
-            )));
+            ));
   }
 }
