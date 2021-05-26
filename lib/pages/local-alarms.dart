@@ -136,11 +136,36 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                     fontSize: 32,
                     color: Colors.white)),
             Container(
-              margin: EdgeInsets.only(top: 8),
+              margin: EdgeInsets.only(top: 8, bottom: 8),
               child: Row(
                   children: Days.all
                       .map((day) => _getDayCheckbox(alarm, day))
                       .toList()),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 8, bottom: 8),
+              child: TextFormField(
+                decoration: InputDecoration(
+                  border: UnderlineInputBorder(),
+                  labelText: "Description",
+                  labelStyle: GoogleFonts.openSans(
+                    color: Colors.white,
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white)
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white)
+                  ),
+                ),
+                cursorColor: Colors.white,
+                style: GoogleFonts.openSans(color: Colors.white),
+                initialValue: alarm.description,
+                onChanged: (newDescription) {
+                  alarm.description = newDescription;
+                  updateAlarm(alarm); // Update database without refreshing state
+                },
+              ),
             ),
             Container(
                 margin: EdgeInsets.only(top: 8),
