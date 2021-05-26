@@ -13,12 +13,20 @@ class App extends StatelessWidget {
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
       ),
-      child: MaterialApp(
-        title: 'WakeTogether',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
+      child: GestureDetector(
+        onTap: () {
+          FocusScopeNode currentFocus = FocusScope.of(context);
+          if (!currentFocus.hasPrimaryFocus) {
+            currentFocus.focusedChild?.unfocus();
+          }
+        },
+        child: MaterialApp(
+          title: 'WakeTogether',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          home: Pages(),
         ),
-        home: Pages(),
       ),
     );
   }
