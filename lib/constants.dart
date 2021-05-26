@@ -15,7 +15,8 @@ class Days {
   static const Days SUNDAY = Days._(19);
 
   /// A set of all Days.
-  static const Set<Days>all = {MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY};
+  static const Set<Days> all = {MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY};
+  static const List<Days> allList = [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY];
 
   /// A map of each Day to a one-letter String.
   static const Map<Days, String> shortStrings = {
