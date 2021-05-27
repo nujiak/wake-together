@@ -126,11 +126,25 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text(alarm.time.format(context),
-                style: Theme.of(context)
-                    .textTheme
-                    .headline3!
-                    .copyWith(color: _textColor)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(alarm.time.format(context),
+                    style: Theme.of(context)
+                        .textTheme
+                        .headline3!
+                        .copyWith(color: _textColor)),
+                Switch(
+                  activeColor: Theme.of(context).primaryColor,
+                  value: alarm.activated,
+                  onChanged: (bool isAlarmActivated) {
+                    alarm.activated = isAlarmActivated;
+                    updateAlarm(alarm);
+                    setState(() {});
+                  },
+                )
+              ],
+            ),
             Container(
               height: 36,
               margin: EdgeInsets.only(top: 8),
