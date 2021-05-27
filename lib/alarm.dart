@@ -17,11 +17,15 @@ class Alarm {
   /// The days on which the alarm will be activated.
   Set<Days> days;
 
-  Alarm(
-      {this.id,
-      required this.description,
-      required this.time,
-      required this.days});
+  bool activated;
+
+  Alarm({
+    this.id,
+    required this.description,
+    required this.time,
+    required this.days,
+    this.activated = true,
+  });
 
   /// Converts the Alarm to a map for inserting into the database.
   Map<String, dynamic> toMap() {
@@ -34,6 +38,7 @@ class Alarm {
       'hour': time.hour,
       'minute': time.minute,
       'days': daysInt,
+      'activated': activated ? 1 : 0,
     };
 
     if (this.id != null) {
@@ -49,12 +54,15 @@ class Alarm {
     String description = map['description'];
     int hour = map['hour'];
     int minute = map['minute'];
+    bool activated = map['activated'] == 1;
 
     Alarm alarm = Alarm(
         id: id,
         description: description,
         time: TimeOfDay(hour: hour, minute: minute),
-        days: _getDays(map['days']));
+        days: _getDays(map['days']),
+        activated: activated,
+    );
     return alarm;
   }
 

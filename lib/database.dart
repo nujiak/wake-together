@@ -38,7 +38,7 @@ class DatabaseProvider {
     return openDatabase(join(await getDatabasesPath(), 'alarms_database.db'),
         version: 1, onCreate: (db, version) {
       return db.execute(
-          "CREATE TABLE $LOCAL_ALARMS_TABLE(id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, hour INTEGER, minute INTEGER, days INTEGER)");
+          "CREATE TABLE $LOCAL_ALARMS_TABLE(id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, hour INTEGER, minute INTEGER, days INTEGER, activated INTEGER)");
     });
   }
 
