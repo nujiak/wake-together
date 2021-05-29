@@ -11,11 +11,13 @@ import 'constants.dart';
 void registerAllAlarms(BuildContext context, List<Alarm> alarms) async {
   _flutterLocalNotificationsPlugin.cancelAll();
   for (Alarm alarm in alarms) {
-    _registerAlarm(context, alarm);
+    if (alarm.activated) {
+      _registerAlarm(context, alarm);
+    }
   }
 }
 
-/// Registers and alarm with the Android AlarmManager
+/// Registers and alarm with Flutter Local Notifications
 void _registerAlarm(BuildContext context, Alarm alarm) async {
   if (alarm.id == null) {
     return;
