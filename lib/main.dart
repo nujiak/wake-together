@@ -4,6 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wake_together/alarm-helper.dart' as AlarmHelper;
+import 'package:wake_together/pages/alarm-screen.dart';
 import 'package:wake_together/pages/local-alarms.dart';
 
 void main() {
@@ -45,7 +47,7 @@ class App extends StatelessWidget {
                 dayPeriodShape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(24)),
               ),
               bottomNavigationBarTheme: BottomNavigationBarThemeData(
-                backgroundColor: Colors.grey[800]
+                  backgroundColor: Colors.grey[800]
               )),
           home: Pages(),
         ),
@@ -61,7 +63,21 @@ class Pages extends StatefulWidget {
 
 class _PagesState extends State<Pages> {
   int _currentPageIndex = 0;
-  GlobalKey btmNavBarKey = GlobalKey();
+
+  /// Future used to initialize AlarmHelper
+  late final Future<void> _alarmHelperInitialized;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _alarmHelperInitialized = AlarmHelper.initialize((payload) async {
+      if (payload == null) {
+        return;
+      }
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => AlarmScreen(payload)));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -123,16 +139,25 @@ class _PagesState extends State<Pages> {
 
     return Scaffold(
       bottomNavigationBar: _getBottomNavigationBar(_currentPageIndex),
-      body: PageView(
-        onPageChanged: (index) => _currentPageIndex = index,
-        scrollDirection: Axis.horizontal,
-        controller: controller,
-        children: <Widget>[
-          LocalAlarmsPage(),
-          Center(
-            child: Text("Coming soon..."),
-          )
-        ],
+      body: FutureBuilder( // Used to ensure AlarmHelper is initialized first
+        future: _alarmHelperInitialized,
+        builder: (context, AsyncSnapshot<void> snapshot) {
+          if (snapshot.hasData) {
+            return PageView(
+              onPageChanged: (index) => _currentPageIndex = index,
+              scrollDirection: Axis.horizontal,
+              controller: controller,
+              children: <Widget>[
+                LocalAlarmsPage(),
+                Center(
+                  child: Text("Coming soon..."),
+                )
+              ],
+            );
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
+        },
       ),
     );
   }

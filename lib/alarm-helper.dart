@@ -23,8 +23,15 @@ void _registerAlarm(BuildContext context, Alarm alarm) async {
     return;
   }
   const AndroidNotificationDetails androidPlatformChannelSpecifics =
-  AndroidNotificationDetails("WakeTogether", "Alarm", "WakeTogether Alarm",
-      priority: Priority.high, importance: Importance.max, showWhen: true);
+  AndroidNotificationDetails(
+      "WakeTogether",
+      "Alarm",
+      "WakeTogether Alarm",
+      priority: Priority.high,
+      importance: Importance.max,
+      showWhen: true,
+      fullScreenIntent: true,
+  );
   const NotificationDetails platformChannelSpecifics =
   NotificationDetails(android: androidPlatformChannelSpecifics);
   if (alarm.days.isEmpty) {
@@ -34,7 +41,9 @@ void _registerAlarm(BuildContext context, Alarm alarm) async {
         alarm.description,
         await _findNextAlarmDateTime(alarm.time), platformChannelSpecifics,
         androidAllowWhileIdle: true,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime);
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        payload: alarm.toJsonEncoding(),
+    );
   } else {
     for (Days day in alarm.days) {
       _flutterLocalNotificationsPlugin.zonedSchedule(
@@ -44,14 +53,16 @@ void _registerAlarm(BuildContext context, Alarm alarm) async {
           await _findNextAlarmDateTime(alarm.time), platformChannelSpecifics,
           androidAllowWhileIdle: true,
           matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
-          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime);
+          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+          payload: alarm.toJsonEncoding(),
+      );
     }
   }
 }
 
 /// Calculates the DateTime for the next instance an alarm should ring.
 Future<tz.TZDateTime> _findNextAlarmDateTime(TimeOfDay time, [Days? day]) async {
-  await _initialize();
+  assert(_initialized);
 
   DateTime now = tz.TZDateTime.now(tz.local);
 
@@ -86,9 +97,9 @@ int getAlarmId(int id) {
 bool _initialized = false;
 
 /// Initializes flutter_local_notification and timezone.
-Future<void> _initialize() async {
+Future<bool> initialize(Future<dynamic> Function(String?)? onSelectNotification) async {
   if (_initialized) {
-    return;
+    return true;
   }
    __flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
@@ -96,19 +107,20 @@ Future<void> _initialize() async {
   AndroidInitializationSettings('alarm_white_24');
   final InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid);
-  await __flutterLocalNotificationsPlugin!.initialize(initializationSettings);
+  await __flutterLocalNotificationsPlugin!.initialize(
+      initializationSettings,
+      onSelectNotification: onSelectNotification);
 
   tz.initializeTimeZones();
   final String? timeZoneName = await FlutterNativeTimezone.getLocalTimezone();
   tz.setLocalLocation(tz.getLocation(timeZoneName!));
   _initialized = true;
+  return true;
 }
 
 /// FlutterLocalNotificationsPlugin for setting notifications.
 FlutterLocalNotificationsPlugin? __flutterLocalNotificationsPlugin;
 FlutterLocalNotificationsPlugin get _flutterLocalNotificationsPlugin {
-  if (__flutterLocalNotificationsPlugin == null) {
-    _initialize();
-  }
+  assert(_initialized);
   return __flutterLocalNotificationsPlugin!;
 }
