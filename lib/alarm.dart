@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'constants.dart';
@@ -64,6 +66,14 @@ class Alarm {
         activated: activated,
     );
     return alarm;
+  }
+
+  String toJsonEncoding() {
+    return jsonEncode(this.toMap());
+  }
+
+  static Alarm fromJsonEncoding(String jsonEncoding) {
+    return fromMap(jsonDecode(jsonEncoding));
   }
 
   /// Get the set of days for which the alarm is activated.
