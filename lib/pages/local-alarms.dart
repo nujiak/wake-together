@@ -4,7 +4,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:wake_together/alarm-helper.dart';
-import 'package:wake_together/database.dart';
+import 'package:wake_together/pages/local-alarms-bloc.dart';
 
 import '../alarm.dart';
 import '../constants.dart';
@@ -20,57 +20,23 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
   @override
   bool get wantKeepAlive => true;
 
+  /// BLoC for local alarms.
+  LocalAlarmsBloc _bloc = LocalAlarmsBloc();
+
+  @override
+  void dispose() {
+    _bloc.dispose();
+    super.dispose();
+  }
+
   /// Radius for rounded cards.
   static const double _cardRadius = 32;
 
-  /// Adds an alarm to the database.
-  Future<void> addAlarm(Alarm alarm) async {
-    DatabaseProvider().insertAlarm(alarm).then((_) => setState(() {}));
-  }
-
-  /// Removes an alarm from the database.
-  void deleteAlarm(Alarm alarm) {
-    DatabaseProvider().deleteAlarm(alarm.id!).then((_) => setState(() {}));
-  }
-
-  /// Updates an alarm in the database.
-  void updateAlarm(Alarm alarm) {
-    DatabaseProvider().updateAlarm(alarm);
-  }
-
-  /// Searches for the appropriate insertion index for an alarm.
-  ///
-  /// Uses binary search to find the position to insert a new alarm such that
-  /// the list of alarms remains sorted. Used for list animation.
-  int _findInsertPosition(TimeOfDay time, List<Alarm> alarms) {
-    double _toDouble(TimeOfDay time) => time.hour + time.minute / 60.0;
-
-    int _binarySearch(int start, int end) {
-      if (start >= end) {
-        return end;
-      }
-      final int mid = start + (end - start) ~/ 2;
-      if (_toDouble(alarms[mid].time) <= _toDouble(time)) {
-        return _binarySearch(mid + 1, end);
-      } else {
-        return _binarySearch(start, mid);
-      }
-    }
-
-    if (alarms.length == 1) {
-      return 0;
-    }
-    return _binarySearch(0, alarms.length - 2);
-  }
-
   /// Shows a Time Picker for user to select the time for a new alarm.
-  Future<void> newAlarm(List<Alarm> alarms) async {
+  void newAlarm(List<Alarm> alarms) {
     Future<TimeOfDay?> selectedTimeFuture =
         showTimePicker(context: context, initialTime: TimeOfDay.now());
-    TimeOfDay? selectedTime = await selectedTimeFuture;
-    if (selectedTime != null) {
-      await addAlarm(Alarm(time: selectedTime, description: '', days: Set()));
-    }
+    _bloc.addAlarm(future: selectedTimeFuture);
   }
 
   @override
@@ -79,8 +45,8 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
     super.build(context);
 
     return Scaffold(
-        body: FutureBuilder<List<Alarm>>(
-            future: DatabaseProvider().getAlarms(),
+        body: StreamBuilder<List<Alarm>>(
+            stream: _bloc.alarms,
             initialData: <Alarm>[],
             builder: (context, AsyncSnapshot<List<Alarm>> snapshot) {
               if (snapshot.hasData) {
@@ -139,7 +105,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                   value: alarm.activated,
                   onChanged: (bool isAlarmActivated) {
                     alarm.activated = isAlarmActivated;
-                    updateAlarm(alarm);
+                    _bloc.updateAlarm(alarm);
                     setState(() {});
                   },
                 )
@@ -169,7 +135,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                 initialValue: alarm.description,
                 onChanged: (newDescription) {
                   alarm.description = newDescription;
-                  updateAlarm(
+                  _bloc.updateAlarm(
                       alarm); // Update database without refreshing state
                 },
               ),
@@ -180,7 +146,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                 child: IconButton(
                   icon: Icon(Icons.delete),
                   onPressed: () {
-                    deleteAlarm(alarm);
+                    _bloc.deleteAlarm(alarm);
                   },
                 ))
           ]),
@@ -246,8 +212,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
               alarm.days.contains(day)
                   ? alarm.days.remove(day)
                   : alarm.days.add(day);
-              updateAlarm(alarm);
-              setState(() {});
+              _bloc.updateAlarm(alarm);
             },
             child: Container(
               height: 32,

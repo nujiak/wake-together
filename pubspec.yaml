@@ -29,6 +29,7 @@ dependencies:
   dotted_border: ^2.0.0
   google_fonts: ^2.1.0
   path:
+  rxdart: ^0.27.1
   sqflite:
 
 
