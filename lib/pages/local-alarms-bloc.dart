@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:wake_together/database.dart';
 
+import '../alarm-helper.dart';
 import '../alarm.dart';
 
 class LocalAlarmsBloc {
@@ -12,7 +14,7 @@ class LocalAlarmsBloc {
     _getAlarms();
   }
 
-  final _alarmsController = StreamController<List<Alarm>>();
+  final _alarmsController = BehaviorSubject<List<Alarm>>();
 
   /// Stream to broadcast Alarms when the database is operated on.
   get alarms => _alarmsController.stream;
@@ -48,5 +50,11 @@ class LocalAlarmsBloc {
   /// Fetches the list of Alarms from the database and adds it to the sink.
   _getAlarms() async {
     _alarmsController.sink.add(await DatabaseProvider().getAlarms());
+  }
+
+  registerAll(BuildContext context) {
+    if (_alarmsController.stream.hasValue) {
+      registerAllAlarms(context, _alarmsController.stream.value);
+    }
   }
 }

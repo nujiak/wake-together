@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:wake_together/alarm-helper.dart';
 import 'package:wake_together/bloc-provider.dart';
 import 'package:wake_together/pages/local-alarms-bloc.dart';
 
@@ -52,7 +51,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
             builder: (context, AsyncSnapshot<List<Alarm>> snapshot) {
               if (snapshot.hasData) {
                 List<Alarm> alarms = snapshot.data!;
-                registerAllAlarms(context, alarms);
+                _bloc.registerAll(context);
 
                 return ListView.builder(
                   itemCount: alarms.length + 1,
