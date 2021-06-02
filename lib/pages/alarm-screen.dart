@@ -8,9 +8,9 @@ class AlarmScreen extends StatelessWidget {
   /// Alarm to be displayed in this screen.
   late final Alarm alarm;
 
-  /// Constructor from payload.
-  AlarmScreen(String payload) {
-    this.alarm = Alarm.fromJsonEncoding(payload);
+  /// Constructor from alarm.
+  AlarmScreen(Alarm alarm) {
+    this.alarm = alarm;
   }
 
   @override

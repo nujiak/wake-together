@@ -4,11 +4,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wake_together/alarm-helper.dart' as AlarmHelper;
+import 'package:wake_together/notification-bloc.dart';
 import 'package:wake_together/pages/alarm-screen.dart';
 import 'package:wake_together/pages/local-alarms.dart';
 
-void main() {
+import 'alarm.dart';
+import 'bloc-provider.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await BlocProvider.notificationBloc.initialize();
   runApp(App());
 }
 
@@ -64,18 +69,21 @@ class Pages extends StatefulWidget {
 class _PagesState extends State<Pages> {
   int _currentPageIndex = 0;
 
-  /// Future used to initialize AlarmHelper
-  late final Future<void> _alarmHelperInitialized;
+  /// BLoC for App.
+  final NotificationBloc _bloc = BlocProvider.notificationBloc;
+
+  @override
+  void dispose() {
+    BlocProvider.disposeNotificationBloc();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
 
-    _alarmHelperInitialized = AlarmHelper.initialize((payload) async {
-      if (payload == null) {
-        return;
-      }
-      await Navigator.push(context, MaterialPageRoute(builder: (_) => AlarmScreen(payload)));
+    _bloc.selectedAlarms.listen((Alarm alarm) async {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => AlarmScreen(alarm)));
     });
   }
 
@@ -139,25 +147,16 @@ class _PagesState extends State<Pages> {
 
     return Scaffold(
       bottomNavigationBar: _getBottomNavigationBar(_currentPageIndex),
-      body: FutureBuilder( // Used to ensure AlarmHelper is initialized first
-        future: _alarmHelperInitialized,
-        builder: (context, AsyncSnapshot<void> snapshot) {
-          if (snapshot.hasData) {
-            return PageView(
-              onPageChanged: (index) => _currentPageIndex = index,
-              scrollDirection: Axis.horizontal,
-              controller: controller,
-              children: <Widget>[
-                LocalAlarmsPage(),
-                Center(
-                  child: Text("Coming soon..."),
-                )
-              ],
-            );
-          } else {
-            return Center(child: CircularProgressIndicator());
-          }
-        },
+      body: PageView(
+        onPageChanged: (index) => _currentPageIndex = index,
+        scrollDirection: Axis.horizontal,
+        controller: controller,
+        children: <Widget>[
+          LocalAlarmsPage(),
+          Center(
+            child: Text("Coming soon..."),
+          )
+        ],
       ),
     );
   }

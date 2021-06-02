@@ -97,9 +97,9 @@ int getAlarmId(int id) {
 bool _initialized = false;
 
 /// Initializes flutter_local_notification and timezone.
-Future<bool> initialize(Future<dynamic> Function(String?)? onSelectNotification) async {
+Future<void> initialize(Future<void> Function(String?)? onSelectNotification) async {
   if (_initialized) {
-    return true;
+    return;
   }
    __flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
@@ -115,7 +115,6 @@ Future<bool> initialize(Future<dynamic> Function(String?)? onSelectNotification)
   final String? timeZoneName = await FlutterNativeTimezone.getLocalTimezone();
   tz.setLocalLocation(tz.getLocation(timeZoneName!));
   _initialized = true;
-  return true;
 }
 
 /// FlutterLocalNotificationsPlugin for setting notifications.

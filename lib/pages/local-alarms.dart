@@ -4,6 +4,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:wake_together/alarm-helper.dart';
+import 'package:wake_together/bloc-provider.dart';
 import 'package:wake_together/pages/local-alarms-bloc.dart';
 
 import '../alarm.dart';
@@ -21,11 +22,11 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
   bool get wantKeepAlive => true;
 
   /// BLoC for local alarms.
-  LocalAlarmsBloc _bloc = LocalAlarmsBloc();
+  LocalAlarmsBloc _bloc = BlocProvider.localAlarmsBlock;
 
   @override
   void dispose() {
-    _bloc.dispose();
+    BlocProvider.disposeLocalAlarmsBloc();
     super.dispose();
   }
 
