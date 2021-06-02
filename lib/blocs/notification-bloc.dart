@@ -22,17 +22,27 @@ class NotificationBloc {
   final BehaviorSubject<Alarm> _selectedAlarms = BehaviorSubject();
 
   /// Stream for broadcasting alarms from selected notifications.
-  Stream<Alarm> get selectedAlarms => _selectedAlarms.stream;
+  ValueStream<Alarm> get selectedAlarms => _selectedAlarms.stream;
 
-  Future<bool> initialize() async {
+  /// Initializes alarm-helper.
+  Future<bool> initialize(void Function(String) onReceivePayload) async {
     await AlarmHelper.initialize((String? payload) async {
       if (payload != null) {
+        onReceivePayload(payload);
         selectedPayloads.add(payload);
       }
     });
     return true;
   }
 
+  /// Returns a payload if app was launched from notifications.
+  ///
+  /// Wrapper for getPayload() in alarm-helper
+  Future<String?> getPayLoad() async {
+    return AlarmHelper.getPayLoad();
+  }
+
+  /// Disposes all StreamControllers.
   void dispose() {
     _selectedPayloads.close();
     _selectedAlarms.close();

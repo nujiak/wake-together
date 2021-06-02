@@ -11,9 +11,27 @@ import 'package:wake_together/pages/local-alarms.dart';
 import 'blocs/bloc-provider.dart';
 import 'data/models/alarm.dart';
 
+/// Payload if app was launched from notification.
+String? _payload;
+
+/// Initial route for the app.
+///
+/// If the app was launched from notification,
+/// initial route points to AlarmScreen.
+late final String _initialRoute;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await BlocProvider.notificationBloc.initialize();
+
+  NotificationBloc notificationBloc = BlocProvider.notificationBloc;
+
+  // Initialise notifications and pass in setter for _payload as callback.
+  await notificationBloc.initialize((payload) => _payload = payload);
+
+  // Handle situation when app is launched by the notification.
+  _payload = await notificationBloc.getPayLoad();
+  _initialRoute = _payload == null ? Pages.routeName : AlarmScreen.routeName;
+
   runApp(App());
 }
 
@@ -54,7 +72,11 @@ class App extends StatelessWidget {
               bottomNavigationBarTheme: BottomNavigationBarThemeData(
                   backgroundColor: Colors.grey[800]
               )),
-          home: Pages(),
+          initialRoute: _initialRoute,
+          routes: {
+            Pages.routeName: (_) => Pages(),
+            AlarmScreen.routeName: (_) => AlarmScreen(_payload!),
+          },
         ),
       ),
     );
@@ -62,6 +84,9 @@ class App extends StatelessWidget {
 }
 
 class Pages extends StatefulWidget {
+
+  static String routeName = "/home";
+
   @override
   State<StatefulWidget> createState() => _PagesState();
 }
@@ -69,7 +94,7 @@ class Pages extends StatefulWidget {
 class _PagesState extends State<Pages> {
   int _currentPageIndex = 0;
 
-  /// BLoC for App.
+  /// BLoC for notification.
   final NotificationBloc _bloc = BlocProvider.notificationBloc;
 
   @override
@@ -82,8 +107,9 @@ class _PagesState extends State<Pages> {
   void initState() {
     super.initState();
 
+    // Handle situation when notification is selected while app is opened.
     _bloc.selectedAlarms.listen((Alarm alarm) async {
-      await Navigator.push(context, MaterialPageRoute(builder: (_) => AlarmScreen(alarm)));
+      await Navigator.pushNamed(context, AlarmScreen.routeName);
     });
   }
 

@@ -123,3 +123,16 @@ FlutterLocalNotificationsPlugin get _flutterLocalNotificationsPlugin {
   assert(_initialized);
   return __flutterLocalNotificationsPlugin!;
 }
+
+/// Gives a payload if app was launched from notification.
+Future<String?> getPayLoad() async {
+  NotificationAppLaunchDetails? notificationAppLaunchDetails =
+      await _flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+  if (notificationAppLaunchDetails == null) {
+    return null;
+  }
+  if (!notificationAppLaunchDetails.didNotificationLaunchApp) {
+    return null;
+  }
+  return notificationAppLaunchDetails.payload;
+}

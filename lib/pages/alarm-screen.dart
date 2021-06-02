@@ -3,14 +3,26 @@ import 'package:flutter/material.dart';
 
 import '../data/models/alarm.dart';
 
-class AlarmScreen extends StatelessWidget {
+class AlarmScreen extends StatefulWidget {
+
+  static String routeName = "/alarmScreen";
+  late final String payload;
+
+  AlarmScreen(this.payload);
+
+  @override
+  _AlarmScreenState createState() => _AlarmScreenState();
+}
+
+class _AlarmScreenState extends State<AlarmScreen> {
 
   /// Alarm to be displayed in this screen.
   late final Alarm alarm;
 
-  /// Constructor from alarm.
-  AlarmScreen(Alarm alarm) {
-    this.alarm = alarm;
+  @override
+  void initState() {
+    super.initState();
+    alarm = Alarm.fromJsonEncoding(widget.payload);
   }
 
   @override
@@ -26,6 +38,5 @@ class AlarmScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    );  }
 }
