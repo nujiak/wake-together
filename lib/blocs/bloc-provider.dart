@@ -1,5 +1,5 @@
-import 'package:wake_together/notification-bloc.dart';
-import 'package:wake_together/pages/local-alarms-bloc.dart';
+import 'package:wake_together/blocs/local-alarms-bloc.dart';
+import 'package:wake_together/blocs/notification-bloc.dart';
 
 class BlocProvider {
 

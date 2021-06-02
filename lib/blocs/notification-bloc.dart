@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:rxdart/rxdart.dart';
-import 'package:wake_together/alarm-helper.dart' as AlarmHelper;
+import 'package:wake_together/data/alarm-helper.dart' as AlarmHelper;
 
-import 'alarm.dart';
+import '../data/models/alarm.dart';
 
 class NotificationBloc {
 

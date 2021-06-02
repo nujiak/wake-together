@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'alarm.dart';
+import 'models/alarm.dart';
 
 class DatabaseProvider {
 

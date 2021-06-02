@@ -3,11 +3,11 @@ import 'dart:ui';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:wake_together/bloc-provider.dart';
-import 'package:wake_together/pages/local-alarms-bloc.dart';
+import 'package:wake_together/blocs/bloc-provider.dart';
+import 'package:wake_together/blocs/local-alarms-bloc.dart';
 
-import '../alarm.dart';
 import '../constants.dart';
+import '../data/models/alarm.dart';
 
 /// Widget page for Local Alarms
 class LocalAlarmsPage extends StatefulWidget {

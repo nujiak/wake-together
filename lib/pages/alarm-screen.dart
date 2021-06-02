@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../alarm.dart';
+import '../data/models/alarm.dart';
 
 class AlarmScreen extends StatelessWidget {
 

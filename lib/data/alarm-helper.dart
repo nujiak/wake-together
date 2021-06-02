@@ -4,8 +4,8 @@ import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-import 'alarm.dart';
-import 'constants.dart';
+import '../constants.dart';
+import 'models/alarm.dart';
 
 /// Registers all alarms
 void registerAllAlarms(BuildContext context, List<Alarm> alarms) async {

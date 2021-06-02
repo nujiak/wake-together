@@ -4,12 +4,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wake_together/notification-bloc.dart';
+import 'package:wake_together/blocs/notification-bloc.dart';
 import 'package:wake_together/pages/alarm-screen.dart';
 import 'package:wake_together/pages/local-alarms.dart';
 
-import 'alarm.dart';
-import 'bloc-provider.dart';
+import 'blocs/bloc-provider.dart';
+import 'data/models/alarm.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

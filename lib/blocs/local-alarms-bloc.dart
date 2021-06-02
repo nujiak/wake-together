@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:wake_together/database.dart';
+import 'package:wake_together/data/database.dart';
 
-import '../alarm-helper.dart';
-import '../alarm.dart';
+import '../data/alarm-helper.dart';
+import '../data/models/alarm.dart';
 
 class LocalAlarmsBloc {
 
