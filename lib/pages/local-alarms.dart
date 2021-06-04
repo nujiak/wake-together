@@ -95,11 +95,20 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(alarm.time.format(context),
-                    style: Theme.of(context)
-                        .textTheme
-                        .headline3!
-                        .copyWith(color: _textColor)),
+                InkWell(
+                  child: Text(alarm.time.format(context),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headline3!
+                          .copyWith(color: _textColor)),
+                  onTap: () async {
+                    TimeOfDay? selectedTimeFuture =
+                    await showTimePicker(context: context, initialTime: alarm.time);
+                    if (selectedTimeFuture != null) {
+                      alarm.time = selectedTimeFuture;
+                      _bloc.updateAlarm(alarm);
+                    }},
+                ),
                 Switch(
                   activeColor: Theme.of(context).primaryColor,
                   value: alarm.activated,
