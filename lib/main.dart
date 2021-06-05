@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:wake_together/blocs/notification-bloc.dart';
 import 'package:wake_together/pages/alarm-screen.dart';
 import 'package:wake_together/pages/local-alarms.dart';
+import 'package:wake_together/pages/shared-alarms/shared-alarms.dart';
 
 import 'blocs/bloc-provider.dart';
 import 'data/models/alarm.dart';
@@ -179,9 +180,7 @@ class _PagesState extends State<Pages> {
         controller: controller,
         children: <Widget>[
           LocalAlarmsPage(),
-          Center(
-            child: Text("Coming soon..."),
-          )
+          AuthenticationPage()
         ],
       ),
     );

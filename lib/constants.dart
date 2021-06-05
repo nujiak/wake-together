@@ -1,4 +1,5 @@
 import 'dart:core';
+
 class Days {
   /// Prime number held by the day.
   final int value;
@@ -40,3 +41,9 @@ class Days {
   };
 }
 
+/// All authentication states that the app could be in.
+enum LoginState {
+  loggedOut,
+  register,
+  loggedIn,
+}
