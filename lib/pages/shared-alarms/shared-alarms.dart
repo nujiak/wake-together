@@ -10,9 +10,20 @@ import '../../constants.dart';
 ///
 /// Shows a login and registration page if logged out, and redirects
 /// to the shared alarms page if logged in.
-class AuthenticationPage extends StatelessWidget {
+class AuthenticationPage extends StatefulWidget {
+  @override
+  _AuthenticationPageState createState() => _AuthenticationPageState();
+}
+
+class _AuthenticationPageState extends State<AuthenticationPage> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    // Call build from super for AutomaticKeepAliveClientMixin
+    super.build(context);
+
     return Provider<AuthenticationBloc>(
       create: (BuildContext context) => AuthenticationBloc(),
       dispose: (context, authBloc) => authBloc.dispose(),
@@ -26,23 +37,65 @@ class AuthenticationPage extends StatelessWidget {
                 return Center(child: CircularProgressIndicator());
               }
               LoginState state = snapshot.data!;
-              switch (state) {
-                case LoginState.loggedOut:
-                  return LoginForm();
-                case LoginState.register:
-                  return RegistrationForm();
-                case LoginState.loggedIn:
-                  return Center(
-                    child: ElevatedButton(
-                      onPressed: authBloc.signOut,
-                      child: Text("Sign out"),
-                    ),
-                  );
+              if (state == LoginState.loggedIn) {
+                return SharedAlarmsPage();
               }
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.bottomCenter,
+                      padding: EdgeInsets.only(bottom: 32),
+                      child: Text(
+                        "WakeTogether",
+                        style: Theme.of(context).textTheme.headline3,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: WillPopScope(
+                      onWillPop: () async {
+                        if (state == LoginState.register) {
+                          authBloc.cancelRegistration();
+                          return false;
+                        }
+                        return true;
+                      },
+                      child: SingleChildScrollView(
+                        child: Container(
+                          margin: EdgeInsets.only(left: 64, right: 64),
+                          child: state == LoginState.loggedOut
+                              ? LoginForm()
+                              : RegistrationForm(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
             },
           ),
         ),
       ),
+    );
+  }
+}
+
+class SharedAlarmsPage extends StatelessWidget {
+  const SharedAlarmsPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthenticationBloc>(
+      builder: (context, authBloc, _) {
+        return Center(
+            child: ElevatedButton(
+              onPressed: authBloc.signOut,
+              child: Text("Sign out"),
+            )
+        );
+      },
     );
   }
 }

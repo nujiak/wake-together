@@ -1,10 +1,12 @@
+import 'dart:ui';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wake_together/blocs/authentication-bloc.dart';
 
-/// Form for logging in using an email and password.
+/// Form for signing in using an email address and password.
 class LoginForm extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -14,45 +16,26 @@ class LoginForm extends StatelessWidget {
     return Consumer<AuthenticationBloc>(builder: (context, authBloc, _) {
       return Column(
         children: [
-          TextField(
-            controller: _emailController,
-            decoration: InputDecoration(
-              hintText: "Email Address",
-            ),
-          ),
-          TextField(
-            obscureText: true,
-            enableSuggestions: false,
-            autocorrect: false,
-            controller: _passwordController,
-            decoration: InputDecoration(
-              hintText: "Password",
-            ),
-          ),
-          Row(
-            children: [
-              ElevatedButton(
-                  onPressed: () => authBloc.startRegistrationFlow(),
-                  child: Text("Register")),
-              ElevatedButton(
-                onPressed: () {
-                  authBloc.signInWithEmailAndPassword(
-                      _emailController.text,
-                      _passwordController.text,
-                      (e) => _showErrorDialog(context, "Invalid Password", e)
-                  );
-                },
-                child: Text("Sign In"),
-              ),
-            ],
-          )
+          _getTextField(_emailController, "Email Address"),
+          SizedBox(height: 8),
+          _getTextField(_passwordController, "Password", isPasswordField: true),
+          SizedBox(height: 16),
+          _getButton("Sign in", () {
+            authBloc.signInWithEmailAndPassword(
+                _emailController.text,
+                _passwordController.text,
+                (e) => _showErrorDialog(context, "Sign-in Error", e));
+          }),
+          _getButton("Register", () => authBloc.startRegistrationFlow(),
+              textButton: true)
         ],
       );
     });
   }
 }
 
-/// Form for registering an account with an email, password, and display name.
+/// Form for registering an account using an email address, password and
+/// display name.
 class RegistrationForm extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _displayNameController = TextEditingController();
@@ -63,42 +46,25 @@ class RegistrationForm extends StatelessWidget {
     return Consumer<AuthenticationBloc>(builder: (context, authBloc, _) {
       return Column(
         children: [
-          TextField(
-            controller: _displayNameController,
-            decoration: InputDecoration(hintText: "Display Name"),
-          ),
-          TextField(
-            controller: _emailController,
-            decoration: InputDecoration(hintText: "Email Address"),
-          ),
-          TextField(
-            controller: _passwordController,
-            obscureText: true,
-            autocorrect: false,
-            enableSuggestions: false,
-            decoration: InputDecoration(
-              hintText: "Password",
-            ),
-          ),
+          _getTextField(_emailController, "Email Address"),
+          SizedBox(height: 8),
+          _getTextField(_passwordController, "Password", isPasswordField: true),
+          SizedBox(height: 8),
+          _getTextField(_displayNameController, "Display Name"),
+          SizedBox(height: 16),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              ElevatedButton(
-                  onPressed: authBloc.cancelRegistration,
-                  child: Text("Back"),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  authBloc.registerAccount(
+              _getButton("Back", authBloc.cancelRegistration, textButton: true),
+              _getButton("Register", () {
+                authBloc.registerAccount(
                     _emailController.text,
-                      _displayNameController.text,
-                      _passwordController.text,
-                          (e) => _showErrorDialog(context, "Registration Error", e));
-                },
-                child: Text("Register"),
-              ),
+                    _displayNameController.text,
+                    _passwordController.text,
+                    (e) => _showErrorDialog(context, "Registration Error", e));
+              }),
             ],
-          )
-
+          ),
         ],
       );
     });
@@ -126,12 +92,54 @@ void _showErrorDialog(
               ),
             ),
             actions: <Widget>[
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('OK'),
-              ),
+              _getButton("OK", () => Navigator.of(context).pop()),
             ],
           ));
+}
+
+/// Returns a text field for the authentication form.
+Widget _getTextField(TextEditingController controller, String hint,
+    {bool isPasswordField = false}) {
+  return TextField(
+    obscureText: isPasswordField,
+    autocorrect: !isPasswordField,
+    enableSuggestions: !isPasswordField,
+    controller: controller,
+    decoration: InputDecoration(
+      isDense: false,
+      hintText: hint,
+      border: UnderlineInputBorder(),
+      filled: true,
+    ),
+  );
+}
+
+/// Returns a button for the authentication form.
+Widget _getButton(String label, Function()? onPressed,
+    {bool textButton = false}) {
+
+  Widget buttonContent = Text(
+    label.toUpperCase(),
+    style: TextStyle(
+      fontWeight: FontWeight.bold,
+    ),
+  );
+
+  ButtonStyle style = ButtonStyle(
+      padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+          EdgeInsets.only(left: 24, right: 24)),
+      shape: MaterialStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(32))));
+
+  return textButton
+      ? TextButton(
+          onPressed: onPressed,
+          child: buttonContent,
+          style: style,
+        )
+      : ElevatedButton(
+          onPressed: onPressed,
+          child: buttonContent,
+          style: style,
+        );
 }
