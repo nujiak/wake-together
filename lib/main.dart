@@ -175,7 +175,7 @@ class _PagesState extends State<Pages> {
     return Scaffold(
       bottomNavigationBar: _getBottomNavigationBar(_currentPageIndex),
       body: PageView(
-        onPageChanged: (index) => _currentPageIndex = index,
+        onPageChanged: (index) => setState(() => _currentPageIndex = index),
         scrollDirection: Axis.horizontal,
         controller: controller,
         children: <Widget>[
