@@ -1,11 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart'; // new
 import 'package:rxdart/rxdart.dart';
 import 'package:wake_together/constants.dart';
 
 /// Bloc handling all Firebase Authentication processes.
-class AuthenticationBloc {
-  AuthenticationBloc() {
+class FirebaseBloc {
+  FirebaseBloc() {
     init();
   }
 
@@ -71,8 +72,30 @@ class AuthenticationBloc {
     }
   }
 
+  /// Name for Firestore collection containing alarm channels
+  static const COLLECTION_CHANNELS = "channels";
+
   /// Signs a user out and return to sign in page.
   void signOut() {
     FirebaseAuth.instance.signOut();
   }
+
+  /// Stream for alarms to listen for realtime changes.
+  Stream<QuerySnapshot>? _alarms;
+  Stream<QuerySnapshot> get alarms {
+    if (_alarms == null) {
+      _alarms = FirebaseFirestore.instance.collection(COLLECTION_CHANNELS).snapshots();
+    }
+    return _alarms!;
+  }
+
+  /// Creates a new alarm channel.
+  void createNewAlarmChannel() async {
+    CollectionReference alarms = FirebaseFirestore.instance.collection(COLLECTION_CHANNELS);
+
+    await alarms.add({
+      'ownerId': FirebaseAuth.instance.currentUser!.uid,
+    });
+  }
+
 }

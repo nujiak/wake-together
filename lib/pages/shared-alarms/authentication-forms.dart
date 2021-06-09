@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:wake_together/blocs/authentication-bloc.dart';
+import 'package:wake_together/blocs/firebase-bloc.dart';
 
 /// Form for signing in using an email address and password.
 class LoginForm extends StatelessWidget {
@@ -13,7 +13,7 @@ class LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthenticationBloc>(builder: (context, authBloc, _) {
+    return Consumer<FirebaseBloc>(builder: (BuildContext context, FirebaseBloc fbBloc, _) {
       return Column(
         children: [
           _getTextField(_emailController, "Email Address"),
@@ -21,12 +21,12 @@ class LoginForm extends StatelessWidget {
           _getTextField(_passwordController, "Password", isPasswordField: true),
           SizedBox(height: 16),
           _getButton("Sign in", () {
-            authBloc.signInWithEmailAndPassword(
+            fbBloc.signInWithEmailAndPassword(
                 _emailController.text,
                 _passwordController.text,
                 (e) => _showErrorDialog(context, "Sign-in Error", e));
           }),
-          _getButton("Register", () => authBloc.startRegistrationFlow(),
+          _getButton("Register", () => fbBloc.startRegistrationFlow(),
               textButton: true)
         ],
       );
@@ -43,7 +43,7 @@ class RegistrationForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthenticationBloc>(builder: (context, authBloc, _) {
+    return Consumer<FirebaseBloc>(builder: (BuildContext context, FirebaseBloc fbBloc, _) {
       return Column(
         children: [
           _getTextField(_emailController, "Email Address"),
@@ -55,9 +55,9 @@ class RegistrationForm extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _getButton("Back", authBloc.cancelRegistration, textButton: true),
+              _getButton("Back", fbBloc.cancelRegistration, textButton: true),
               _getButton("Register", () {
-                authBloc.registerAccount(
+                fbBloc.registerAccount(
                     _emailController.text,
                     _displayNameController.text,
                     _passwordController.text,
