@@ -55,6 +55,7 @@ class App extends StatelessWidget {
           theme: ThemeData(
               primaryColor: Colors.blue,
               brightness: Brightness.dark,
+              backgroundColor: Colors.grey[900]!,
               fontFamily: GoogleFonts.openSans().fontFamily,
               textTheme: TextTheme(
                 headline1: TextStyle(fontWeight: FontWeight.bold),

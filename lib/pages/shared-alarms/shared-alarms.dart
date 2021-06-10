@@ -131,6 +131,13 @@ class SharedAlarmsPage extends StatelessWidget {
                     (BuildContext context,
                     AsyncSnapshot<QuerySnapshot> subscribedChannelsSnap) {
                   return Scaffold(
+                    appBar: AppBar(
+                      backgroundColor: Theme.of(context).colorScheme.background,
+                      title: Text(usernameSnap.data!),
+                      actions: [
+                        IconButton(onPressed: fbBloc.signOut, icon: Icon(Icons.logout))
+                      ],
+                    ),
                     floatingActionButton: FloatingActionButton(
                       backgroundColor: Theme
                           .of(context)
@@ -139,34 +146,48 @@ class SharedAlarmsPage extends StatelessWidget {
                       child: const Icon(Icons.add),
                       onPressed: () => _createNewAlarmChannel(context, fbBloc),
                     ),
-                    body: Container(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          OutlinedButton(
-                              onPressed: fbBloc.signOut,
-                              child: const Text("Sign out")),
-                          Expanded(
-                            child: ListView.builder(
-                                itemCount: subscribedChannelsSnap.hasData
-                                    ? subscribedChannelsSnap.data!.size
-                                    : 0,
-                                itemBuilder: (BuildContext context, int index) {
-                                  print(subscribedChannelsSnap.data!.docs[index].data());
-                                  return Text(
-                                      subscribedChannelsSnap.data!.docs[index]
-                                          .data()['channelName'] ?? "<null>");
-                                }),
-                          ),
-                        ],
-                      ),
-                    ),
+                    body: ListView.builder(
+                        itemCount: subscribedChannelsSnap.hasData
+                            ? subscribedChannelsSnap.data!.size
+                            : 0,
+                        itemBuilder: (BuildContext context, int index) {
+                          print(subscribedChannelsSnap.data!.docs[index].data());
+                          return _SharedAlarmsListItem(
+                              subscribedChannelsSnap.data!.docs[index]);
+                        }),
                   );
                 },
               );
             }
         );
       },
+    );
+  }
+}
+
+class _SharedAlarmsListItem extends StatelessWidget {
+  const _SharedAlarmsListItem(this.doc);
+  final DocumentSnapshot doc;
+  static const double _cardRadius = 32;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      margin: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+      padding: EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 24),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(_cardRadius)),
+          color: Colors.grey[800],
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+                offset: Offset(2, 2))
+          ]),
+      child: Text(doc.data()?['channelName'] ?? "<null>",
+          style: Theme.of(context).textTheme.headline3,
+      ),
     );
   }
 }
