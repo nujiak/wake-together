@@ -66,24 +66,33 @@ enum ButtonType {
 
 /// Styled button with semi-bold text to be used throughout the app.
 class StyledButton extends StatelessWidget {
-  const StyledButton(
-      {required this.text,
-      required this.onPressed,
-      this.buttonType = ButtonType.elevated,
-      this.splash = true});
+  const StyledButton({
+    required this.text,
+    required this.onPressed,
+    this.buttonType = ButtonType.elevated,
+    this.splash = true,
+    this.style,
+  });
 
   final String text;
   final void Function() onPressed;
   final ButtonType buttonType;
   final bool splash;
+  final ButtonStyle? style;
 
   @override
   Widget build(BuildContext context) {
     final Widget child =
         Text(text, style: TextStyle(fontWeight: FontWeight.w600));
-    final ButtonStyle style = ButtonStyle(
-      splashFactory: splash ? null : NoSplash.splashFactory,
-    );
+    final ButtonStyle style;
+    if (this.style != null) {
+      style = this
+          .style!
+          .copyWith(splashFactory: splash ? null : NoSplash.splashFactory);
+    } else {
+      style = ButtonStyle(splashFactory: NoSplash.splashFactory);
+    }
+
     switch (buttonType) {
       case ButtonType.elevated:
         return ElevatedButton(

@@ -71,9 +71,7 @@ class _AuthenticationPageState extends State<AuthenticationPage>
                         child: SingleChildScrollView(
                           child: Container(
                             margin: EdgeInsets.only(left: 64, right: 64),
-                            child: state == LoginState.loggedOut
-                                ? LoginForm()
-                                : RegistrationForm(),
+                            child: AuthenticationForm(),
                           ),
                         ),
                       ),

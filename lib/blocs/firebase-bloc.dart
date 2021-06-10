@@ -64,12 +64,11 @@ class FirebaseBloc {
   }
 
   /// Attempts to register a user with an email, password, and display name.
-  void registerAccount(String email, String displayName, String password,
+  void registerAccount(String email, String password,
       void Function(FirebaseAuthException e) errorCallback) async {
     try {
-      var credential = await FirebaseAuth.instance
+      await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
-      await credential.user!.updateDisplayName(displayName);
     } on FirebaseAuthException catch (e) {
       errorCallback(e);
     }
