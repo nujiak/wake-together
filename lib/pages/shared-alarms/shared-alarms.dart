@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wake_together/blocs/firebase-bloc.dart';
 import 'package:wake_together/pages/shared-alarms/authentication-forms.dart';
+import 'package:wake_together/widgets.dart';
 
 import '../../constants.dart';
 
@@ -30,52 +31,57 @@ class _AuthenticationPageState extends State<AuthenticationPage>
       create: (BuildContext context) => FirebaseBloc(),
       dispose: (BuildContext context, FirebaseBloc fbBloc) => fbBloc.dispose(),
       child: Consumer<FirebaseBloc>(
-        builder: (BuildContext context, FirebaseBloc fbBloc, _) => StreamBuilder(
-          stream: fbBloc.loginState,
-          builder: (BuildContext context, AsyncSnapshot<LoginState> snapshot) {
-            if (!snapshot.hasData) {
-              return Center(child: CircularProgressIndicator());
-            }
-            LoginState state = snapshot.data!;
-            if (state == LoginState.loggedIn) {
-              return SharedAlarmsPage();
-            }
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Container(
-                    alignment: Alignment.bottomCenter,
-                    padding: EdgeInsets.only(bottom: 32),
-                    child: Text(
-                      "WakeTogether",
-                      style: Theme.of(context).textTheme.headline3,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: WillPopScope(
-                    onWillPop: () async {
-                      if (state == LoginState.register) {
-                        fbBloc.cancelRegistration();
-                        return false;
-                      }
-                      return true;
-                    },
-                    child: SingleChildScrollView(
+        builder: (BuildContext context, FirebaseBloc fbBloc, _) =>
+            StreamBuilder(
+              stream: fbBloc.loginState,
+              builder: (BuildContext context,
+                  AsyncSnapshot<LoginState> snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                LoginState state = snapshot.data!;
+                if (state == LoginState.loggedIn) {
+                  return SharedAlarmsPage();
+                }
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
                       child: Container(
-                        margin: EdgeInsets.only(left: 64, right: 64),
-                        child: state == LoginState.loggedOut
-                            ? LoginForm()
-                            : RegistrationForm(),
+                        alignment: Alignment.bottomCenter,
+                        padding: EdgeInsets.only(bottom: 32),
+                        child: Text(
+                          "WakeTogether",
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .headline3,
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+                    Expanded(
+                      child: WillPopScope(
+                        onWillPop: () async {
+                          if (state == LoginState.register) {
+                            fbBloc.cancelRegistration();
+                            return false;
+                          }
+                          return true;
+                        },
+                        child: SingleChildScrollView(
+                          child: Container(
+                            margin: EdgeInsets.only(left: 64, right: 64),
+                            child: state == LoginState.loggedOut
+                                ? LoginForm()
+                                : RegistrationForm(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
       ),
     );
   }
@@ -84,19 +90,48 @@ class _AuthenticationPageState extends State<AuthenticationPage>
 class SharedAlarmsPage extends StatelessWidget {
   const SharedAlarmsPage({Key? key}) : super(key: key);
 
+  /// Shows a dialog requesting a non-empty channel name and creates an alarm
+  /// channel with the name.
+  void _createNewAlarmChannel(BuildContext context, FirebaseBloc fbBloc) async {
+    String? newChannelName = await showInputDialog(
+        context: context,
+        title: "New Alarm Channel",
+        validator: (value) {
+          value = value?.trim();
+          if (value == null || value.isEmpty) {
+            return "Name cannot be empty";
+          } else if (value.length > 32) {
+            return "Name has more than 32 characters"
+          }
+          return null;
+        },
+        labelText: "Name"
+        doneAction: "Create",
+        cancelAction: "Cancel"
+    );
+
+    if (newChannelName != null) {
+      fbBloc.createNewAlarmChannel(newChannelName);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<FirebaseBloc>(
       builder: (BuildContext context, FirebaseBloc fbBloc, _) {
         return Scaffold(
           floatingActionButton: FloatingActionButton(
-            backgroundColor: Theme.of(context).colorScheme.primary,
+            backgroundColor: Theme
+                .of(context)
+                .colorScheme
+                .primary,
             child: const Icon(Icons.add),
-            onPressed: fbBloc.createNewAlarmChannel,
+            onPressed: () => _createNewAlarmChannel(context, fbBloc),
           ),
           body: StreamBuilder<QuerySnapshot>(
-            stream: fbBloc.alarms,
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            stream: fbBloc.subscribedChannels,
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               return Container(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -106,9 +141,12 @@ class SharedAlarmsPage extends StatelessWidget {
                         child: const Text("Sign out")),
                     Expanded(
                       child: ListView.builder(
-                        itemCount: snapshot.hasData ? snapshot.data!.size : 0,
+                          itemCount: snapshot.hasData ? snapshot.data!.size : 0,
                           itemBuilder: (BuildContext context, int index) {
-                            return Text(snapshot.data!.docs[index].data()['ownerId']);
+                            print(snapshot.data!.docs[index].data());
+                            return Text(
+                                snapshot.data!.docs[index]
+                                    .data()['channelName'] ?? "<null>");
                           }),
                     ),
                   ],

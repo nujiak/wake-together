@@ -34,6 +34,9 @@ class FirebaseBloc {
     });
   }
 
+  /// Returns the user id for the current account.
+  String get userId => FirebaseAuth.instance.currentUser!.uid;
+
   /// Brings the user to the registration page.
   void startRegistrationFlow() {
     _loginStateSubject.sink.add(LoginState.register);
@@ -41,7 +44,7 @@ class FirebaseBloc {
 
   /// Attempts to sign in with an email and password.
   void signInWithEmailAndPassword(
-      String email,
+    String email,
     String password,
     void Function(FirebaseAuthException e) errorCallback,
   ) async {
@@ -72,30 +75,48 @@ class FirebaseBloc {
     }
   }
 
-  /// Name for Firestore collection containing alarm channels
-  static const COLLECTION_CHANNELS = "channels";
-
   /// Signs a user out and return to sign in page.
   void signOut() {
     FirebaseAuth.instance.signOut();
+    FirebaseFirestore.instance.clearPersistence();
+    _subscribedChannels = null;
   }
 
   /// Stream for alarms to listen for realtime changes.
-  Stream<QuerySnapshot>? _alarms;
-  Stream<QuerySnapshot> get alarms {
-    if (_alarms == null) {
-      _alarms = FirebaseFirestore.instance.collection(COLLECTION_CHANNELS).snapshots();
+  Stream<QuerySnapshot>? _subscribedChannels;
+
+  /// Getter for _subscribedChannels with lazy evaluation.
+  Stream<QuerySnapshot> get subscribedChannels {
+    if (_subscribedChannels == null) {
+      _subscribedChannels = FirebaseFirestore.instance
+          .collection("/users/$userId/subscribed_channels")
+          .snapshots();
     }
-    return _alarms!;
+    return _subscribedChannels!;
   }
 
-  /// Creates a new alarm channel.
-  void createNewAlarmChannel() async {
-    CollectionReference alarms = FirebaseFirestore.instance.collection(COLLECTION_CHANNELS);
+  /// Creates a new alarm channel with a name.
+  void createNewAlarmChannel(String channelName) async {
+    CollectionReference channelsCollection =
+        FirebaseFirestore.instance.collection("/channels");
 
-    await alarms.add({
-      'ownerId': FirebaseAuth.instance.currentUser!.uid,
+    // Add the new channel to the channels collection
+    Future<DocumentReference> addToChannels = channelsCollection.add({
+      "ownerId": userId,
+      "channelName": channelName,
     });
-  }
 
+    // Add the new channel to the subscribed channels sub-collection,
+    // including the channel's documentId and name.
+    Future<DocumentReference> addReferenceToUsers =
+        addToChannels.then((docRef) {
+      return FirebaseFirestore.instance
+          .collection("/users/$userId/subscribed_channels")
+          .add({
+        "channelId": docRef.id,
+        "channelName": channelName,
+      });
+    });
+    await addReferenceToUsers;
+  }
 }
