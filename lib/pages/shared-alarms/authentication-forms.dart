@@ -79,6 +79,97 @@ class _AuthenticationFormState extends State<AuthenticationForm> {
   }
 }
 
+class UsernameForm extends StatefulWidget {
+  const UsernameForm({Key? key}) : super(key: key);
+
+  @override
+  _UsernameFormState createState() => _UsernameFormState();
+}
+
+class _UsernameFormState extends State<UsernameForm> {
+
+  late final TextEditingController _controller;
+  late final GlobalKey<FormState> _formKey;
+  bool _usernameExists = false;
+
+  /// Checks if a username does not contain invalid characters.
+  static bool _validateUsername(String username) {
+    username = username.trim();
+    for (String character in username.characters) {
+      if (!VALID_USERNAME_CHARACTERS.contains(character)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+    _formKey = GlobalKey<FormState>();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<FirebaseBloc>(
+      builder: (BuildContext context, FirebaseBloc fbBloc, _) => Container(
+        child: Container(
+          padding: EdgeInsets.only(left: 48, right: 48),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("You need a username to share alarms with your friends.",
+                style: Theme.of(context).textTheme.headline6,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 8),
+              Form(
+                key: _formKey,
+                child: TextFormField(
+                  controller: _controller,
+                  validator: (String? value) {
+                    value = value?.trim().toLowerCase();
+                    if (value?.isEmpty ?? false) {
+                      return "Username cannot be empty";
+                    }
+                    if (!_validateUsername(value!)) {
+                      return "Username contains illegal characters";
+                    }
+                    if (_usernameExists) {
+                      return "This username is already taken";
+                    }
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Username",
+                    filled: true,
+                  ),
+                ),
+              ),
+              SizedBox(height: 8),
+              _getButton("Confirm", () async {
+                // Reset _usernameExists status first
+                _usernameExists = false;
+
+                // Validate form
+                if (_formKey.currentState?.validate() ?? false) {
+                  bool successful = await fbBloc.registerUsername(_controller.text.trim().toLowerCase());
+                  if (!successful) {
+                    // If registration fails, the username is already taken
+                    _usernameExists = true;
+                    _formKey.currentState?.validate();
+                  }
+                }
+              })
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
 /// Shows an error dialog for the provided FirebaseAuthException.
 void _showErrorDialog(
     BuildContext context, String title, FirebaseAuthException e) {
@@ -106,7 +197,7 @@ void _showErrorDialog(
 }
 
 /// Returns a text field for the authentication form.
-Widget _getTextField(TextEditingController controller, String hint,
+Widget _getTextField(TextEditingController controller, String label,
     {bool isPasswordField = false}) {
   return TextField(
     obscureText: isPasswordField,
@@ -115,7 +206,7 @@ Widget _getTextField(TextEditingController controller, String hint,
     controller: controller,
     decoration: InputDecoration(
       isDense: false,
-      hintText: hint,
+      labelText: label,
       border: UnderlineInputBorder(),
       filled: true,
     ),

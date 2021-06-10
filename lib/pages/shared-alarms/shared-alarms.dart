@@ -117,41 +117,54 @@ class SharedAlarmsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<FirebaseBloc>(
       builder: (BuildContext context, FirebaseBloc fbBloc, _) {
-        return Scaffold(
-          floatingActionButton: FloatingActionButton(
-            backgroundColor: Theme
-                .of(context)
-                .colorScheme
-                .primary,
-            child: const Icon(Icons.add),
-            onPressed: () => _createNewAlarmChannel(context, fbBloc),
-          ),
-          body: StreamBuilder<QuerySnapshot>(
-            stream: fbBloc.subscribedChannels,
-            builder:
-                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              return Container(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    OutlinedButton(
-                        onPressed: fbBloc.signOut,
-                        child: const Text("Sign out")),
-                    Expanded(
-                      child: ListView.builder(
-                          itemCount: snapshot.hasData ? snapshot.data!.size : 0,
-                          itemBuilder: (BuildContext context, int index) {
-                            print(snapshot.data!.docs[index].data());
-                            return Text(
-                                snapshot.data!.docs[index]
-                                    .data()['channelName'] ?? "<null>");
-                          }),
+        return StreamBuilder<String?>(
+            stream: fbBloc.username,
+            builder: (BuildContext context, AsyncSnapshot<String?> usernameSnap) {
+
+              if (!usernameSnap.hasData) {
+                return UsernameForm();
+              }
+
+              return StreamBuilder<QuerySnapshot>(
+                stream: fbBloc.subscribedChannels,
+                builder:
+                    (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot> subscribedChannelsSnap) {
+                  return Scaffold(
+                    floatingActionButton: FloatingActionButton(
+                      backgroundColor: Theme
+                          .of(context)
+                          .colorScheme
+                          .primary,
+                      child: const Icon(Icons.add),
+                      onPressed: () => _createNewAlarmChannel(context, fbBloc),
                     ),
-                  ],
-                ),
+                    body: Container(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          OutlinedButton(
+                              onPressed: fbBloc.signOut,
+                              child: const Text("Sign out")),
+                          Expanded(
+                            child: ListView.builder(
+                                itemCount: subscribedChannelsSnap.hasData
+                                    ? subscribedChannelsSnap.data!.size
+                                    : 0,
+                                itemBuilder: (BuildContext context, int index) {
+                                  print(subscribedChannelsSnap.data!.docs[index].data());
+                                  return Text(
+                                      subscribedChannelsSnap.data!.docs[index]
+                                          .data()['channelName'] ?? "<null>");
+                                }),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               );
-            },
-          ),
+            }
         );
       },
     );

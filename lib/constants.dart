@@ -47,3 +47,6 @@ enum LoginState {
   register,
   loggedIn,
 }
+
+/// All characters that are valid in a username.
+const String VALID_USERNAME_CHARACTERS = "abcdefghijklmnopqrstuv0123456789._";

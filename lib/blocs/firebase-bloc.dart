@@ -79,9 +79,10 @@ class FirebaseBloc {
     FirebaseAuth.instance.signOut();
     FirebaseFirestore.instance.clearPersistence();
     _subscribedChannels = null;
+    _username = null;
   }
 
-  /// Stream for alarms to listen for realtime changes.
+  /// Stream for channels to listen for realtime changes.
   Stream<QuerySnapshot>? _subscribedChannels;
 
   /// Getter for _subscribedChannels with lazy evaluation.
@@ -92,6 +93,20 @@ class FirebaseBloc {
           .snapshots();
     }
     return _subscribedChannels!;
+  }
+
+  /// Stream for the current account's username.
+  Stream<String?>? _username;
+
+  /// Getter for _username with lazy evaluation.
+  Stream<String?> get username {
+    if (_username == null) {
+      _username = FirebaseFirestore.instance
+          .doc("users/$userId")
+          .snapshots()
+      .map((docSnap) => docSnap.get("username"));
+    }
+    return _username!;
   }
 
   /// Creates a new alarm channel with a name.
@@ -117,5 +132,27 @@ class FirebaseBloc {
       });
     });
     await addReferenceToUsers;
+  }
+
+  /// Checks whether a username already exists
+  Future<bool> doesUsernameExist(String username) {
+    return FirebaseFirestore.instance
+        .collection("/users")
+        .where("username", isEqualTo: username)
+        .get()
+        .then((QuerySnapshot snapshot) => snapshot.size > 0);
+  }
+
+  /// Registers a username for the current account
+  Future<bool> registerUsername(String username) async {
+    if (await doesUsernameExist(username)) {
+      print("Username $username alr exists");
+      return false;
+    } else {
+      await FirebaseFirestore.instance
+          .doc("/users/$userId")
+          .set({"username": username});
+      return true;
+    }
   }
 }
