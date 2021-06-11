@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:wake_together/blocs/bloc-provider.dart';
 import 'package:wake_together/blocs/local-alarms-bloc.dart';
+import 'package:wake_together/widgets.dart';
 
 import '../constants.dart';
 import '../data/models/alarm.dart';
@@ -26,11 +27,14 @@ class LocalAlarmListItem extends StatelessWidget {
   final LocalAlarmsBloc _bloc = BlocProvider.localAlarmsBlock;
   /// Radius for rounded cards.
   static const double _cardRadius = 32;
+  /// Changes the alarm description accordingly
+  TextEditingController textController() {
+    return TextEditingController(text: alarm.description);
+  }
 
   @override
   Widget build(BuildContext context) {
     Color _textColor = Theme.of(context).colorScheme.onSurface;
-    Color _textColorDisabled = Theme.of(context).colorScheme.onSurface.withAlpha(100);
 
     /// Provides a single day checkbox for a given alarm and day.
     Widget _getDayCheckbox(Alarm alarm, Days day) {
@@ -72,7 +76,7 @@ class LocalAlarmListItem extends StatelessWidget {
               ),
             ));
     }
-    
+
     return Container(
       margin: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
       padding: EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 24),
@@ -130,22 +134,22 @@ class LocalAlarmListItem extends StatelessWidget {
                       .toList()),
             ),
             Container(
-              child: TextFormField(
-                decoration: InputDecoration(
-                  border: UnderlineInputBorder(),
-                  labelText: "Note",
-                  labelStyle: TextStyle(color: _textColorDisabled),
-                  enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: _textColorDisabled)),
-                  focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: _textColorDisabled)),
-                ),
-                cursorColor: _textColorDisabled,
-                initialValue: alarm.description,
-                onChanged: (newDescription) {
-                  alarm.description = newDescription;
-                  _bloc.updateAlarm(
-                      alarm); // Update database without refreshing state
+              child: TextField(
+                controller: textController(),
+                readOnly: true,
+                onTap: () async {
+                  String? newDescription = await showInputDialog(
+                      context: context,
+                      title: "New Note",
+                      labelText: "Note",
+                      doneAction: "Confirm",
+                      cancelAction: "Cancel");
+
+                  if (newDescription != null) {
+                    alarm.description = newDescription;
+                    _bloc.updateAlarm(
+                        alarm); // Update database without refreshing state
+                  }
                 },
               ),
             ),
