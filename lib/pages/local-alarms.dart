@@ -15,64 +15,64 @@ class LocalAlarmsPage extends StatefulWidget {
   State<StatefulWidget> createState() => _LocalAlarmsPageState();
 }
 
-class _LocalAlarmsPageState extends State<LocalAlarmsPage>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+class LocalAlarmListItem extends StatelessWidget {
+  LocalAlarmListItem({
+    required this.alarm,
+  });
 
+  /// Alarm object associated with this widget
+  final Alarm alarm;
   /// BLoC for local alarms.
-  LocalAlarmsBloc _bloc = BlocProvider.localAlarmsBlock;
-
-  @override
-  void dispose() {
-    BlocProvider.disposeLocalAlarmsBloc();
-    super.dispose();
-  }
-
+  final LocalAlarmsBloc _bloc = BlocProvider.localAlarmsBlock;
   /// Radius for rounded cards.
   static const double _cardRadius = 32;
 
-  /// Shows a Time Picker for user to select the time for a new alarm.
-  void newAlarm(List<Alarm> alarms) {
-    Future<TimeOfDay?> selectedTimeFuture =
-        showTimePicker(context: context, initialTime: TimeOfDay.now());
-    _bloc.addAlarm(future: selectedTimeFuture);
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Call build from super for AutomaticKeepAliveClientMixin
-    super.build(context);
-
-    return Scaffold(
-        body: StreamBuilder<List<Alarm>>(
-            stream: _bloc.alarms,
-            initialData: <Alarm>[],
-            builder: (context, AsyncSnapshot<List<Alarm>> snapshot) {
-              if (snapshot.hasData) {
-                List<Alarm> alarms = snapshot.data!;
-                _bloc.registerAll(context);
-
-                return ListView.builder(
-                  itemCount: alarms.length + 1,
-                  itemBuilder: (context, index) => index < alarms.length
-                      ? _getListItem(alarms, index)
-                      : _getAlarmAdder(alarms),
-                );
-              } else if (snapshot.hasError) {
-                return Center(child: Text("Error: ${snapshot.error}"));
-              } else {
-                return Center(child: CircularProgressIndicator());
-              }
-            }));
-  }
-
-  /// Provides the list item widget for an alarm.
-  Widget _getListItem(List<Alarm> alarms, int index) {
-    Alarm alarm = alarms[index];
     Color _textColor = Theme.of(context).colorScheme.onSurface;
     Color _textColorDisabled = Theme.of(context).colorScheme.onSurface.withAlpha(100);
 
+    /// Provides a single day checkbox for a given alarm and day.
+    Widget _getDayCheckbox(Alarm alarm, Days day) {
+      bool _selected = alarm.days.contains(day);
+
+      return
+        InkWell(
+            onTap: () {
+              alarm.days.contains(day)
+                  ? alarm.days.remove(day)
+                  : alarm.days.add(day);
+              _bloc.updateAlarm(alarm);
+            },
+            child: Container(
+              height: 32,
+              width: 32,
+              decoration: BoxDecoration(
+                border: Border.all(
+                    width: .5,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withAlpha(_selected ? 0 : 100)),
+                shape: BoxShape.circle,
+                color: _selected
+                    ? Theme.of(context).colorScheme.onSurface.withAlpha(100)
+                    : Colors.transparent,
+              ),
+              child: Center(
+                child: Text(
+                  Days.shortStrings[day]!,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withAlpha(_selected ? 255 : 100)),
+                ),
+              ),
+            ));
+    }
+    
     return Container(
       margin: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
       padding: EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 24),
@@ -115,7 +115,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                   onChanged: (bool isAlarmActivated) {
                     alarm.activated = isAlarmActivated;
                     _bloc.updateAlarm(alarm);
-                    setState(() {});
+                    //setState(() {});
                   },
                 )
               ],
@@ -124,7 +124,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
               height: 36,
               margin: EdgeInsets.only(top: 8),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: Days.allList
                       .map((day) => _getDayCheckbox(alarm, day))
                       .toList()),
@@ -160,6 +160,59 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                 ))
           ]),
     );
+  }
+}
+
+class _LocalAlarmsPageState extends State<LocalAlarmsPage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  /// BLoC for local alarms.
+  LocalAlarmsBloc _bloc = BlocProvider.localAlarmsBlock;
+
+  @override
+  void dispose() {
+    BlocProvider.disposeLocalAlarmsBloc();
+    super.dispose();
+  }
+
+  /// Radius for rounded cards.
+  static const double _cardRadius = 32;
+
+  /// Shows a Time Picker for user to select the time for a new alarm.
+  void newAlarm(List<Alarm> alarms) {
+    Future<TimeOfDay?> selectedTimeFuture =
+        showTimePicker(context: context, initialTime: TimeOfDay.now());
+    _bloc.addAlarm(future: selectedTimeFuture);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Call build from super for AutomaticKeepAliveClientMixin
+    super.build(context);
+
+    return Scaffold(
+        body: StreamBuilder<List<Alarm>>(
+            stream: _bloc.alarms,
+            initialData: <Alarm>[],
+            builder: (context, AsyncSnapshot<List<Alarm>> snapshot) {
+              if (snapshot.hasData) {
+                List<Alarm> alarms = snapshot.data!;
+                _bloc.registerAll(context);
+
+                return ListView.builder(
+                  itemCount: alarms.length + 1,
+                  itemBuilder: (context, index) => index < alarms.length
+                      ? LocalAlarmListItem(alarm: alarms[index])
+                      : _getAlarmAdder(alarms),
+                );
+              } else if (snapshot.hasError) {
+                return Center(child: Text("Error: ${snapshot.error}"));
+              } else {
+                return Center(child: CircularProgressIndicator());
+              }
+            }));
   }
 
   /// Provides the dashed Alarm Adder to place at the end of the list.
@@ -207,48 +260,5 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                     ],
                   ),
                 ))));
-  }
-
-  /// Provides a single day checkbox for a given alarm and day.
-  ///
-  /// Used in _getListItem.
-  Widget _getDayCheckbox(Alarm alarm, Days day) {
-    bool _selected = alarm.days.contains(day);
-
-    return
-        InkWell(
-            onTap: () {
-              alarm.days.contains(day)
-                  ? alarm.days.remove(day)
-                  : alarm.days.add(day);
-              _bloc.updateAlarm(alarm);
-            },
-            child: Container(
-              height: 32,
-              width: 32,
-              decoration: BoxDecoration(
-                border: Border.all(
-                    width: .5,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withAlpha(_selected ? 0 : 100)),
-                shape: BoxShape.circle,
-                color: _selected
-                    ? Theme.of(context).colorScheme.onSurface.withAlpha(100)
-                    : Colors.transparent,
-              ),
-              child: Center(
-                child: Text(
-                  Days.shortStrings[day]!,
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withAlpha(_selected ? 255 : 100)),
-                ),
-              ),
-            ));
   }
 }
