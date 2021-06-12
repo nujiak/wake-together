@@ -7,7 +7,20 @@ import '../data/models/alarm.dart';
 
 class NotificationBloc {
 
-  NotificationBloc() {
+  /// Singleton instance of NotificationBloc.
+  static NotificationBloc? _instance;
+
+  /// Lazily provides the singleton instance.
+  static NotificationBloc get instance {
+    if (_instance == null) {
+      _instance = NotificationBloc._();
+    }
+    return _instance!;
+  }
+
+  /// Private constructor for initialising the bloc.
+  NotificationBloc._() {
+    // Observe the selectedPayloads sink to add alarm to selectedAlarms
     _selectedPayloads.stream.listen((String payload) {
       Alarm alarm = Alarm.fromJsonEncoding(payload);
       _selectedAlarms.add(alarm);

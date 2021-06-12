@@ -9,7 +9,6 @@ import 'package:wake_together/pages/alarm-screen.dart';
 import 'package:wake_together/pages/local-alarms.dart';
 import 'package:wake_together/pages/shared-alarms/shared-alarms.dart';
 
-import 'blocs/bloc-provider.dart';
 import 'data/models/alarm.dart';
 
 /// Payload if app was launched from notification.
@@ -24,7 +23,7 @@ late final String _initialRoute;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  NotificationBloc notificationBloc = BlocProvider.notificationBloc;
+  NotificationBloc notificationBloc = NotificationBloc.instance;
 
   // Initialise notifications and pass in setter for _payload as callback.
   await notificationBloc.initialize((payload) => _payload = payload);
@@ -97,11 +96,11 @@ class _PagesState extends State<Pages> {
   int _currentPageIndex = 0;
 
   /// BLoC for notification.
-  final NotificationBloc _bloc = BlocProvider.notificationBloc;
+  final NotificationBloc _bloc = NotificationBloc.instance;
 
   @override
   void dispose() {
-    BlocProvider.disposeNotificationBloc();
+    _bloc.dispose();
     super.dispose();
   }
 
