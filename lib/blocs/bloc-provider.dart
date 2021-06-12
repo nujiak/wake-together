@@ -1,4 +1,3 @@
-import 'package:wake_together/blocs/local-alarms-bloc.dart';
 import 'package:wake_together/blocs/notification-bloc.dart';
 
 class BlocProvider {
@@ -9,22 +8,10 @@ class BlocProvider {
   /// Singleton instance of BlockProvider.
   static final BlocProvider _instance = BlocProvider._();
 
-  LocalAlarmsBloc? _localAlarmsBloc;
   NotificationBloc? _notificationBloc;
 
   factory BlocProvider() {
     return _instance;
-  }
-
-  static LocalAlarmsBloc get localAlarmsBlock {
-    if (_instance._localAlarmsBloc == null) {
-      _instance._localAlarmsBloc = LocalAlarmsBloc();
-    }
-    return _instance._localAlarmsBloc!;
-  }
-
-  static disposeLocalAlarmsBloc() {
-    _instance._localAlarmsBloc?.dispose();
   }
 
   static NotificationBloc get notificationBloc {
