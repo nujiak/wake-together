@@ -6,26 +6,53 @@ Future<String?> showInputDialog(
     {required BuildContext context,
     String? title,
     String? labelText,
+    String? initialText,
     required String doneAction,
     String? cancelAction,
-    String? Function(String?)? validator}) {
+    String? Function(String?)? validator,
+    TextCapitalization textCapitalization = TextCapitalization.sentences}) {
   return showDialog<String>(
       context: context,
       builder: (context) {
-        /// Key used for form validation
+        // Key used for form validation.
         GlobalKey<FormState> _formFieldKey = GlobalKey<FormState>();
+
+        // Controller for accessing text field contents.
         TextEditingController controller = TextEditingController();
+
+        // FocusNode for controlling autofocus.
+        FocusNode focusNode = FocusNode();
+
+        // Make focusNode select all text in controller.
+        focusNode.addListener(() {
+          controller.selection =
+              TextSelection(baseOffset: 0, extentOffset: controller.text.length);
+        });
+
+        // Function for validating text field and submitting.
+        void onPressed() {
+          if (_formFieldKey.currentState != null &&
+              _formFieldKey.currentState!.validate()) {
+            Navigator.pop(context, controller.text.trim());
+          }
+        }
+        
+        controller.text = initialText ?? "";
         return AlertDialog(
           titlePadding: EdgeInsets.only(left: 24, top: 16),
-          contentPadding: EdgeInsets.only(left: 16, right: 16, top: 8),
+          contentPadding: EdgeInsets.only(left: 16, right: 16, top: 16),
           buttonPadding: EdgeInsets.all(0),
           actionsPadding: EdgeInsets.only(right: 16),
           title: title != null ? Text(title) : null,
           content: Form(
             key: _formFieldKey,
             child: TextFormField(
+              focusNode: focusNode,
               controller: controller,
               validator: validator,
+              autofocus: true,
+              textCapitalization: textCapitalization,
+              onFieldSubmitted: (_) => onPressed(),
               decoration: InputDecoration(
                 isDense: true,
                 labelText: labelText,
@@ -37,20 +64,13 @@ Future<String?> showInputDialog(
             if (cancelAction != null)
               StyledButton(
                 splash: false,
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                onPressed: () => Navigator.pop(context),
                 text: cancelAction,
                 buttonType: ButtonType.text,
               ),
             StyledButton(
                 splash: false,
-                onPressed: () {
-                  if (_formFieldKey.currentState != null &&
-                      _formFieldKey.currentState!.validate()) {
-                    Navigator.pop(context, controller.text.trim());
-                  }
-                },
+                onPressed: onPressed,
                 text: doneAction,
                 buttonType: ButtonType.text)
           ],
