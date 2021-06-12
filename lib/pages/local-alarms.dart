@@ -45,7 +45,7 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
                   return ListView.builder(
                     itemCount: alarms.length + 1,
                     itemBuilder: (context, index) => index < alarms.length
-                        ? _LocalAlarmListItem(alarm: alarms[index])
+                        ? _LocalAlarmsListItem(alarm: alarms[index])
                         : _AlarmAdder(),
                   );
                 } else if (snapshot.hasError) {
@@ -61,19 +61,14 @@ class _LocalAlarmsPageState extends State<LocalAlarmsPage>
 }
 
 /// List item widget for a single alarm.
-class _LocalAlarmListItem extends StatelessWidget {
-  _LocalAlarmListItem({required this.alarm});
+class _LocalAlarmsListItem extends StatelessWidget {
+  _LocalAlarmsListItem({required this.alarm});
 
   /// Alarm object associated with this widget
   final Alarm alarm;
 
   /// Radius for rounded cards.
   static const double _cardRadius = 32;
-
-  /// Changes the alarm description accordingly
-  TextEditingController textController() {
-    return TextEditingController(text: alarm.description);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -138,24 +133,35 @@ class _LocalAlarmListItem extends StatelessWidget {
                         .map((day) => _DayCheckBox(alarm: alarm, day: day))
                         .toList()),
               ),
-              Container(
-                child: TextField(
-                  controller: textController(),
-                  readOnly: true,
-                  onTap: () async {
-                    String? newDescription = await showInputDialog(
-                        context: context,
-                        title: "New Note",
-                        labelText: "Note",
-                        doneAction: "Confirm",
-                        cancelAction: "Cancel");
+              SizedBox(height: 16),
+              InkWell(
+                splashFactory: InkRipple.splashFactory,
+                onTap: () async {
+                  String? newDescription = await showInputDialog(
+                      context: context,
+                      labelText: "Note",
+                      initialText: alarm.description,
+                      doneAction: "Save",
+                      cancelAction: "Cancel");
 
-                    if (newDescription != null) {
-                      alarm.description = newDescription;
-                      bloc.updateAlarm(
-                          alarm); // Update database without refreshing state
-                    }
-                  },
+                  if (newDescription != null) {
+                    alarm.description = newDescription;
+                    bloc.updateAlarm(alarm);
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(width: 1, color: Theme.of(context).colorScheme.onSurface.withAlpha(100))
+                  ),
+                  child: Text(
+                      alarm.description.isEmpty ? "Note" : alarm.description,
+                    style: TextStyle(
+                      color: alarm.description.isEmpty ? Colors.grey : Colors.white
+                    ),
+                  ),
                 ),
               ),
               Container(
@@ -234,7 +240,7 @@ class _AlarmAdder extends StatelessWidget {
   /// Shows a Time Picker for user to select the time for a new alarm.
   void newAlarm(BuildContext context, LocalAlarmsBloc bloc) {
     Future<TimeOfDay?> selectedTimeFuture =
-    showTimePicker(context: context, initialTime: TimeOfDay.now());
+        showTimePicker(context: context, initialTime: TimeOfDay.now());
     bloc.addAlarm(future: selectedTimeFuture);
   }
 
