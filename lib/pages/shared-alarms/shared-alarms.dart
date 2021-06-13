@@ -1,8 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wake_together/blocs/firebase-bloc.dart';
+import 'package:wake_together/data/models/alarm-channel.dart';
 import 'package:wake_together/pages/shared-alarms/authentication-forms.dart';
 import 'package:wake_together/widgets.dart';
 
@@ -125,11 +125,11 @@ class SharedAlarmsPage extends StatelessWidget {
                 return UsernameForm();
               }
 
-              return StreamBuilder<QuerySnapshot>(
+              return StreamBuilder<List<AlarmChannelOverview>>(
                 stream: fbBloc.subscribedChannels,
                 builder:
                     (BuildContext context,
-                    AsyncSnapshot<QuerySnapshot> subscribedChannelsSnap) {
+                    AsyncSnapshot<List<AlarmChannelOverview>> subscribedChannelsSnap) {
                   return Scaffold(
                     appBar: AppBar(
                       backgroundColor: Theme.of(context).colorScheme.background,
@@ -148,12 +148,12 @@ class SharedAlarmsPage extends StatelessWidget {
                     ),
                     body: ListView.builder(
                         itemCount: subscribedChannelsSnap.hasData
-                            ? subscribedChannelsSnap.data!.size
+                            ? subscribedChannelsSnap.data!.length
                             : 0,
                         itemBuilder: (BuildContext context, int index) {
-                          print(subscribedChannelsSnap.data!.docs[index].data());
+                          print(subscribedChannelsSnap.data![index]);
                           return _SharedAlarmsListItem(
-                              subscribedChannelsSnap.data!.docs[index]);
+                              subscribedChannelsSnap.data![index]);
                         }),
                   );
                 },
@@ -166,8 +166,8 @@ class SharedAlarmsPage extends StatelessWidget {
 }
 
 class _SharedAlarmsListItem extends StatelessWidget {
-  const _SharedAlarmsListItem(this.doc);
-  final DocumentSnapshot doc;
+  const _SharedAlarmsListItem(this.alarmChannelOverview);
+  final AlarmChannelOverview alarmChannelOverview;
   static const double _cardRadius = 32;
 
   @override
@@ -185,7 +185,7 @@ class _SharedAlarmsListItem extends StatelessWidget {
                 blurRadius: 8,
                 offset: Offset(2, 2))
           ]),
-      child: Text(doc.data()?['channelName'] ?? "<null>",
+      child: Text(alarmChannelOverview.channelName ?? "<null>",
           style: Theme.of(context).textTheme.headline3,
       ),
     );

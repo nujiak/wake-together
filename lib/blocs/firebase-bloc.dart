@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart'; // new
 import 'package:rxdart/rxdart.dart';
 import 'package:wake_together/constants.dart';
+import 'package:wake_together/data/models/alarm-channel.dart';
 
 /// Bloc handling all Firebase Authentication processes.
 class FirebaseBloc {
@@ -82,17 +83,82 @@ class FirebaseBloc {
     _username = null;
   }
 
+  /// Name for the field containing the username in /users/userid
+  static const String USERNAME_FIELD = "username";
+
+  /// Name for the field containing an alarm channel's owner's user id in
+  /// /channels/channelId
+  static const String OWNER_ID_FIELD = "ownerId";
+
+  /// Name for the field containing an alarm channel's id
+  /// in /user/userId/subscribed_channels/.
+  static const String CHANNEL_ID_FIELD = "channelId";
+
+  /// Name for the field containing an alarm channel's name
+  /// in /channels/channelId and /users/userId/subscribed_channels/.
+  static const String CHANNEL_NAME_FIELD = "channelName";
+
+  /// Absolute path to subscribed_channels Firestore sub-collection
+  /// for the current user.
+  String get subscribedChannelsPath => "/users/$userId/subscribed_channels";
+
   /// Stream for channels to listen for realtime changes.
-  Stream<QuerySnapshot>? _subscribedChannels;
+  Stream<List<AlarmChannelOverview>>? _subscribedChannels;
 
   /// Getter for _subscribedChannels with lazy evaluation.
-  Stream<QuerySnapshot> get subscribedChannels {
+  Stream<List<AlarmChannelOverview>> get subscribedChannels {
     if (_subscribedChannels == null) {
       _subscribedChannels = FirebaseFirestore.instance
-          .collection("/users/$userId/subscribed_channels")
-          .snapshots();
+          .collection(subscribedChannelsPath)
+          .snapshots()
+          .map((QuerySnapshot snapshot) =>
+          snapshot.docs.map(_alarmChannelOverviewFrom).toList());
     }
     return _subscribedChannels!;
+  }
+
+  /// Maps a QueryDocumentSnapshot from /user/.../subscribed_channels/ to
+  /// an AlarmChannelOverview.
+  AlarmChannelOverview _alarmChannelOverviewFrom(
+      QueryDocumentSnapshot docSnap) {
+    return AlarmChannelOverview(docSnap.data()[CHANNEL_NAME_FIELD],
+        _getAlarmChannel(docSnap.data()[CHANNEL_ID_FIELD]));
+  }
+
+  /// Returns a Future that provides the AlarmChannel representing the alarm
+  /// channel with channelId in /channels/.
+  Future<Stream<AlarmChannel>> _getAlarmChannel(String channelId) async {
+    return FirebaseFirestore.instance
+        .doc("channels/$channelId")
+        .snapshots()
+        .map((DocumentSnapshot docSnap) => AlarmChannel(
+            docSnap.data()?[CHANNEL_NAME_FIELD],
+            docSnap.data()?[OWNER_ID_FIELD]));
+  }
+
+  /// Creates a new alarm channel with a name.
+  void createNewAlarmChannel(String channelName) async {
+    CollectionReference channelsCollection =
+        FirebaseFirestore.instance.collection("/channels");
+
+    // Add the new channel to the channels collection
+    Future<DocumentReference> addToChannels = channelsCollection.add({
+      OWNER_ID_FIELD: userId,
+      CHANNEL_NAME_FIELD: channelName,
+    });
+
+    // Add the new channel to the subscribed channels sub-collection,
+    // including the channel's documentId and name.
+    Future<DocumentReference> addReferenceToUsers =
+        addToChannels.then((docRef) {
+      return FirebaseFirestore.instance
+          .collection(subscribedChannelsPath)
+          .add({
+        CHANNEL_ID_FIELD: docRef.id,
+        CHANNEL_NAME_FIELD: channelName,
+      });
+    });
+    await addReferenceToUsers;
   }
 
   /// Stream for the current account's username.
@@ -104,38 +170,13 @@ class FirebaseBloc {
       _username = FirebaseFirestore.instance
           .doc("users/$userId")
           .snapshots()
-      .map((docSnap) => docSnap.get("username"));
+          .map((docSnap) => docSnap.get(USERNAME_FIELD));
     }
     return _username!;
   }
 
-  /// Creates a new alarm channel with a name.
-  void createNewAlarmChannel(String channelName) async {
-    CollectionReference channelsCollection =
-        FirebaseFirestore.instance.collection("/channels");
-
-    // Add the new channel to the channels collection
-    Future<DocumentReference> addToChannels = channelsCollection.add({
-      "ownerId": userId,
-      "channelName": channelName,
-    });
-
-    // Add the new channel to the subscribed channels sub-collection,
-    // including the channel's documentId and name.
-    Future<DocumentReference> addReferenceToUsers =
-        addToChannels.then((docRef) {
-      return FirebaseFirestore.instance
-          .collection("/users/$userId/subscribed_channels")
-          .add({
-        "channelId": docRef.id,
-        "channelName": channelName,
-      });
-    });
-    await addReferenceToUsers;
-  }
-
   /// Checks whether a username already exists
-  Future<bool> doesUsernameExist(String username) {
+  Future<bool> _doesUsernameExist(String username) {
     return FirebaseFirestore.instance
         .collection("/users")
         .where("username", isEqualTo: username)
@@ -145,13 +186,12 @@ class FirebaseBloc {
 
   /// Registers a username for the current account
   Future<bool> registerUsername(String username) async {
-    if (await doesUsernameExist(username)) {
-      print("Username $username alr exists");
+    if (await _doesUsernameExist(username)) {
       return false;
     } else {
       await FirebaseFirestore.instance
           .doc("/users/$userId")
-          .set({"username": username});
+          .set({USERNAME_FIELD: username});
       return true;
     }
   }
