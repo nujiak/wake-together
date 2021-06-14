@@ -153,7 +153,6 @@ class SharedAlarmsPage extends StatelessWidget {
                             ? subscribedChannelsSnap.data!.length
                             : 0,
                         itemBuilder: (BuildContext context, int index) {
-                          print(subscribedChannelsSnap.data![index]);
                           return _SharedAlarmsListItem(
                               subscribedChannelsSnap.data![index]);
                         }),
