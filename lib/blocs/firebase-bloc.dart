@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart'; // new
+import 'package:firebase_core/firebase_core.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:wake_together/constants.dart';
 import 'package:wake_together/data/models/alarm-channel.dart';
@@ -142,23 +142,23 @@ class FirebaseBloc {
         FirebaseFirestore.instance.collection("/channels");
 
     // Add the new channel to the channels collection
-    Future<DocumentReference> addToChannels = channelsCollection.add({
+    DocumentReference channelDocument = await channelsCollection.add({
       OWNER_ID_FIELD: userId,
       CHANNEL_NAME_FIELD: channelName,
     });
 
     // Add the new channel to the subscribed channels sub-collection,
     // including the channel's documentId and name.
-    Future<DocumentReference> addReferenceToUsers =
-        addToChannels.then((docRef) {
-      return FirebaseFirestore.instance
-          .collection(subscribedChannelsPath)
-          .add({
-        CHANNEL_ID_FIELD: docRef.id,
-        CHANNEL_NAME_FIELD: channelName,
-      });
+    await FirebaseFirestore.instance.collection(subscribedChannelsPath).add({
+      CHANNEL_ID_FIELD: channelDocument.id,
+      CHANNEL_NAME_FIELD: channelName,
     });
-    await addReferenceToUsers;
+
+    // Insert current user (owner) as a subscriber of the channel.
+    await channelDocument
+        .collection("/subscribers")
+        .doc(userId)
+        .set({"username": await _getUsername(userId)});
   }
 
   /// Stream for the current account's username.
@@ -170,12 +170,21 @@ class FirebaseBloc {
       _username = FirebaseFirestore.instance
           .doc("users/$userId")
           .snapshots()
-          .map((docSnap) => docSnap.get(USERNAME_FIELD));
+          .map((docSnap) => docSnap.get(USERNAME_FIELD))
+          .asBroadcastStream() as Stream<String?>;
     }
     return _username!;
   }
 
-  /// Checks whether a username already exists
+  /// Gets the username for a given userId.
+  Future<String?> _getUsername(String targetUserId) {
+    return FirebaseFirestore.instance
+        .doc("/users/$targetUserId")
+        .get()
+        .then((DocumentSnapshot docSnap) => docSnap.data()?["username"]);
+  }
+
+  /// Checks whether a username already exists.
   Future<bool> _doesUsernameExist(String username) {
     return FirebaseFirestore.instance
         .collection("/users")
