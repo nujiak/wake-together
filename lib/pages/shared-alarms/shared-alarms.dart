@@ -120,7 +120,6 @@ class SharedAlarmsPage extends StatelessWidget {
         return StreamBuilder<String?>(
             stream: fbBloc.username,
             builder: (BuildContext context, AsyncSnapshot<String?> usernameSnap) {
-
               if (!usernameSnap.hasData) {
                 return UsernameForm();
               }
@@ -135,7 +134,10 @@ class SharedAlarmsPage extends StatelessWidget {
                       backgroundColor: Theme.of(context).colorScheme.background,
                       title: Text(usernameSnap.data!),
                       actions: [
-                        IconButton(onPressed: fbBloc.signOut, icon: Icon(Icons.logout))
+                        IconButton(
+                            onPressed: fbBloc.signOut,
+                            icon: Icon(Icons.logout)
+                        ),
                       ],
                     ),
                     floatingActionButton: FloatingActionButton(
@@ -167,27 +169,86 @@ class SharedAlarmsPage extends StatelessWidget {
 
 class _SharedAlarmsListItem extends StatelessWidget {
   const _SharedAlarmsListItem(this.alarmChannelOverview);
+
   final AlarmChannelOverview alarmChannelOverview;
   static const double _cardRadius = 32;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      alignment: Alignment.centerLeft,
       margin: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
-      padding: EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 24),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(_cardRadius)),
-          color: Colors.grey[800],
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withOpacity(0.2),
                 blurRadius: 8,
                 offset: Offset(2, 2))
           ]),
-      child: Text(alarmChannelOverview.channelName ?? "<null>",
-          style: Theme.of(context).textTheme.headline3,
+      child: Material(
+        color: Colors.grey[800],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_cardRadius)),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(_cardRadius),
+          splashFactory: InkRipple.splashFactory,
+          onTap: () =>
+              Navigator.push(context, MaterialPageRoute(
+                  builder: (context) => AlarmChannelPage(alarmChannelOverview))),
+          child: Container(
+            padding: EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 24),
+            child: Text(alarmChannelOverview.channelName ?? "<null>",
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .headline3,
+            ),
+          ),
+        ),
       ),
+    );
+  }
+}
+
+/// Displays the details of an AlarmChannel given its AlarmChannelOverview.
+class AlarmChannelPage extends StatelessWidget {
+  const AlarmChannelPage(this._alarmChannelOverview);
+
+  final AlarmChannelOverview _alarmChannelOverview;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_alarmChannelOverview.channelName ?? "<null>"),
+        backgroundColor: Theme
+            .of(context)
+            .colorScheme
+            .background,
+      ),
+      body: FutureBuilder(
+          future: _alarmChannelOverview.alarmChannel,
+          builder: (BuildContext context,
+              AsyncSnapshot<Stream<AlarmChannel>> streamSnapshot) {
+            return !streamSnapshot.hasData
+                ? const Center(child: const CircularProgressIndicator())
+                : StreamBuilder(
+                stream: streamSnapshot.data,
+                builder: (BuildContext context,
+                    AsyncSnapshot<AlarmChannel> alarmChannelSnap) {
+                  if (!alarmChannelSnap.hasData) {
+                    return const Center(
+                        child: const CircularProgressIndicator());
+                  }
+
+                  AlarmChannel alarmChannel = alarmChannelSnap.data!;
+
+                  return Row(
+                    children: [
+                      Text(alarmChannel.channelName ?? "<null>"),
+                    ],
+                  );
+                });
+          }),
     );
   }
 }
