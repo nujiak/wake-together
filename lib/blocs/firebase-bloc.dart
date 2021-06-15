@@ -90,17 +90,27 @@ class FirebaseBloc {
   /// /channels/channelId
   static const String OWNER_ID_FIELD = "ownerId";
 
-  /// Name for the field containing an alarm channel's id
-  /// in /user/userId/subscribed_channels/.
-  static const String CHANNEL_ID_FIELD = "channelId";
-
   /// Name for the field containing an alarm channel's name
   /// in /channels/channelId and /users/userId/subscribed_channels/.
   static const String CHANNEL_NAME_FIELD = "channelName";
 
+  /// Name for the sub-collection containing a user's subscribed alarm channels
+  /// in /user/userId/.
+  static const String SUBSCRIBED_CHANNELS_SUB = "subscribed_channels";
+
+  /// Name for the sub-collection containing an alarm channels' subscribers
+  /// in /channels/channelId.
+  static const String SUBSCRIBERS_SUB = "subscribers";
+
+  /// Name for the top-level collection containing all user documents.
+  static const String USERS_COLLECTION = "users";
+
+  /// Name for the top-level collection containing all alarm channels.
+  static const String CHANNELS_COLLECTION = "channels";
+
   /// Absolute path to subscribed_channels Firestore sub-collection
   /// for the current user.
-  String get subscribedChannelsPath => "/users/$userId/subscribed_channels";
+  String get subscribedChannelsPath => "/users/$userId/$SUBSCRIBED_CHANNELS_SUB";
 
   /// Stream for channels to listen for realtime changes.
   Stream<List<AlarmChannelOverview>>? _subscribedChannels;
@@ -122,24 +132,38 @@ class FirebaseBloc {
   AlarmChannelOverview _alarmChannelOverviewFrom(
       QueryDocumentSnapshot docSnap) {
     return AlarmChannelOverview(docSnap.data()[CHANNEL_NAME_FIELD],
-        _getAlarmChannel(docSnap.data()[CHANNEL_ID_FIELD]));
+        _getAlarmChannel(docSnap.id));
   }
 
   /// Returns a Future that provides the AlarmChannel representing the alarm
   /// channel with channelId in /channels/.
   Future<Stream<AlarmChannel>> _getAlarmChannel(String channelId) async {
     return FirebaseFirestore.instance
-        .doc("channels/$channelId")
+        .doc("/$CHANNELS_COLLECTION/$channelId")
         .snapshots()
         .map((DocumentSnapshot docSnap) => AlarmChannel(
-            docSnap.data()?[CHANNEL_NAME_FIELD],
-            docSnap.data()?[OWNER_ID_FIELD]));
+        channelId,
+        docSnap.data()?[CHANNEL_NAME_FIELD],
+        docSnap.data()?[OWNER_ID_FIELD],
+        _getAlarmChannelSubscribers(channelId)));
+  }
+
+  Future<Stream<List<String?>>> _getAlarmChannelSubscribers(
+      String channelId) async {
+    return FirebaseFirestore.instance
+        .collection("/$CHANNELS_COLLECTION/$channelId/$SUBSCRIBERS_SUB")
+        .snapshots()
+        .map((QuerySnapshot snapshot) => snapshot.docs)
+        .map((List<QueryDocumentSnapshot> docSnapshots) {
+      return docSnapshots.map((QueryDocumentSnapshot docSnapshot) =>
+      docSnapshot.data()[USERNAME_FIELD] as String?).toList();
+    });
   }
 
   /// Creates a new alarm channel with a name.
   void createNewAlarmChannel(String channelName) async {
     CollectionReference channelsCollection =
-        FirebaseFirestore.instance.collection("/channels");
+        FirebaseFirestore.instance.collection("/$CHANNELS_COLLECTION");
 
     // Add the new channel to the channels collection
     DocumentReference channelDocument = await channelsCollection.add({
@@ -149,16 +173,41 @@ class FirebaseBloc {
 
     // Add the new channel to the subscribed channels sub-collection,
     // including the channel's documentId and name.
-    await FirebaseFirestore.instance.collection(subscribedChannelsPath).add({
-      CHANNEL_ID_FIELD: channelDocument.id,
+    await FirebaseFirestore.instance.doc("$subscribedChannelsPath/${channelDocument.id}").set({
       CHANNEL_NAME_FIELD: channelName,
     });
 
     // Insert current user (owner) as a subscriber of the channel.
     await channelDocument
-        .collection("/subscribers")
+        .collection("/$SUBSCRIBERS_SUB")
         .doc(userId)
-        .set({"username": await _getUsername(userId)});
+        .set({USERNAME_FIELD: await _getUsername(userId)});
+  }
+
+  /// Adds a user with targetUsername to an alarm channel.
+  Future<bool> addUserToChannel(String targetUsername, AlarmChannel alarmChannel) async {
+
+    targetUsername = targetUsername.trim().toLowerCase();
+
+    String? targetUserId = await _getUserId(targetUsername);
+
+    if (targetUserId == null) {
+      return false;
+    }
+
+    // Add user to channel's subscribers
+    await FirebaseFirestore.instance
+        .doc("/channels/${alarmChannel.channelId}/$SUBSCRIBERS_SUB/$targetUserId")
+        .set({USERNAME_FIELD: targetUsername});
+
+    // Add channel to user's subscribed_channels
+    await FirebaseFirestore.instance
+    .doc("/$USERS_COLLECTION/$targetUserId/$SUBSCRIBED_CHANNELS_SUB/${alarmChannel.channelId}")
+    .set({
+      CHANNEL_NAME_FIELD: alarmChannel.channelName,
+    });
+
+    return true;
   }
 
   /// Stream for the current account's username.
@@ -170,8 +219,7 @@ class FirebaseBloc {
       _username = FirebaseFirestore.instance
           .doc("users/$userId")
           .snapshots()
-          .map((docSnap) => docSnap.get(USERNAME_FIELD))
-          .asBroadcastStream() as Stream<String?>;
+          .map((docSnap) => docSnap.get(USERNAME_FIELD));
     }
     return _username!;
   }
@@ -182,6 +230,17 @@ class FirebaseBloc {
         .doc("/users/$targetUserId")
         .get()
         .then((DocumentSnapshot docSnap) => docSnap.data()?["username"]);
+  }
+
+  /// Gets the userId for a given username.
+  Future<String?> _getUserId(String targetUsername) {
+    return FirebaseFirestore.instance
+        .collection(USERS_COLLECTION)
+        .where("username", isEqualTo: targetUsername)
+        .get()
+        .then((QuerySnapshot snapshot) => snapshot.docs)
+        .then((List<QueryDocumentSnapshot> snapshots) =>
+          snapshots.length == 0 ? null :snapshots[0].id);
   }
 
   /// Checks whether a username already exists.

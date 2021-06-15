@@ -9,8 +9,10 @@ class AlarmChannelOverview {
 
 /// Stores the detailed information of each alarm channel.
 class AlarmChannel {
-  AlarmChannel(this.channelName, this.ownerId);
+  AlarmChannel(this.channelId, this.channelName, this.ownerId, this.subscribers);
 
+  final String channelId;
   final String? channelName;
   final String? ownerId;
+  final Future<Stream<List<String?>>> subscribers;
 }
