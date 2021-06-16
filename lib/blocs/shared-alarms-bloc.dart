@@ -6,8 +6,8 @@ import 'package:wake_together/constants.dart';
 import 'package:wake_together/data/models/alarm-channel.dart';
 
 /// Bloc handling all Firebase Authentication processes.
-class FirebaseBloc {
-  FirebaseBloc() {
+class SharedAlarmsBloc {
+  SharedAlarmsBloc() {
     init();
   }
 

@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:wake_together/blocs/firebase-bloc.dart';
+import 'package:wake_together/blocs/shared-alarms-bloc.dart';
 import 'package:wake_together/constants.dart';
 import 'package:wake_together/widgets.dart';
 
@@ -28,8 +28,8 @@ class _AuthenticationFormState extends State<AuthenticationForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<FirebaseBloc>(
-        builder: (BuildContext context, FirebaseBloc fbBloc, _) {
+    return Consumer<SharedAlarmsBloc>(
+        builder: (BuildContext context, SharedAlarmsBloc fbBloc, _) {
           return StreamBuilder<LoginState>(
             stream: fbBloc.loginState,
             builder: (BuildContext context, AsyncSnapshot<LoginState> snapshot) {
@@ -112,8 +112,8 @@ class _UsernameFormState extends State<UsernameForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<FirebaseBloc>(
-      builder: (BuildContext context, FirebaseBloc fbBloc, _) => Container(
+    return Consumer<SharedAlarmsBloc>(
+      builder: (BuildContext context, SharedAlarmsBloc fbBloc, _) => Container(
         child: Container(
           padding: EdgeInsets.only(left: 48, right: 48),
           child: Column(

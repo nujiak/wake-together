@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:wake_together/blocs/firebase-bloc.dart';
+import 'package:wake_together/blocs/shared-alarms-bloc.dart';
 import 'package:wake_together/data/models/alarm-channel.dart';
 import 'package:wake_together/pages/shared-alarms/authentication-forms.dart';
 import 'package:wake_together/widgets.dart';
@@ -27,11 +27,11 @@ class _AuthenticationPageState extends State<AuthenticationPage>
     // Call build from super for AutomaticKeepAliveClientMixin
     super.build(context);
 
-    return Provider<FirebaseBloc>(
-      create: (BuildContext context) => FirebaseBloc(),
-      dispose: (BuildContext context, FirebaseBloc fbBloc) => fbBloc.dispose(),
-      child: Consumer<FirebaseBloc>(
-        builder: (BuildContext context, FirebaseBloc fbBloc, _) =>
+    return Provider<SharedAlarmsBloc>(
+      create: (BuildContext context) => SharedAlarmsBloc(),
+      dispose: (BuildContext context, SharedAlarmsBloc fbBloc) => fbBloc.dispose(),
+      child: Consumer<SharedAlarmsBloc>(
+        builder: (BuildContext context, SharedAlarmsBloc fbBloc, _) =>
             StreamBuilder(
               stream: fbBloc.loginState,
               builder: (BuildContext context,
@@ -90,7 +90,7 @@ class SharedAlarmsPage extends StatelessWidget {
 
   /// Shows a dialog requesting a non-empty channel name and creates an alarm
   /// channel with the name.
-  void _createNewAlarmChannel(BuildContext context, FirebaseBloc fbBloc) async {
+  void _createNewAlarmChannel(BuildContext context, SharedAlarmsBloc fbBloc) async {
     String? newChannelName = await showInputDialog(
         context: context,
         title: "New Alarm Channel",
@@ -115,8 +115,8 @@ class SharedAlarmsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<FirebaseBloc>(
-      builder: (BuildContext context, FirebaseBloc fbBloc, _) {
+    return Consumer<SharedAlarmsBloc>(
+      builder: (BuildContext context, SharedAlarmsBloc fbBloc, _) {
         return StreamBuilder<String?>(
             stream: fbBloc.username,
             builder: (BuildContext context, AsyncSnapshot<String?> usernameSnap) {
@@ -174,8 +174,8 @@ class _SharedAlarmsListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<FirebaseBloc>(
-      builder: (BuildContext context, FirebaseBloc fbBloc, _) => Container(
+    return Consumer<SharedAlarmsBloc>(
+      builder: (BuildContext context, SharedAlarmsBloc fbBloc, _) => Container(
         margin: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(_cardRadius)),
@@ -215,11 +215,11 @@ class AlarmChannelPage extends StatelessWidget {
   const AlarmChannelPage(this._alarmChannelOverview, this._fbBloc);
 
   final AlarmChannelOverview _alarmChannelOverview;
-  final FirebaseBloc _fbBloc;
+  final SharedAlarmsBloc _fbBloc;
 
   @override
   Widget build(BuildContext context) {
-    return Provider<FirebaseBloc>(
+    return Provider<SharedAlarmsBloc>(
       create: (BuildContext context) => _fbBloc,
       child: Scaffold(
         appBar: AppBar(
@@ -266,8 +266,8 @@ class _SubscribersBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return
-      Consumer<FirebaseBloc>(
-        builder: (BuildContext context, FirebaseBloc fbBloc, _) => Container(
+      Consumer<SharedAlarmsBloc>(
+        builder: (BuildContext context, SharedAlarmsBloc fbBloc, _) => Container(
           alignment: Alignment.centerLeft,
           margin: EdgeInsets.all(8),
           padding: EdgeInsets.all(24),
