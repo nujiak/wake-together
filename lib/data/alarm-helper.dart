@@ -39,7 +39,7 @@ void _registerAlarm(BuildContext context, Alarm alarm) async {
         alarm.id!,
         alarm.time.format(context),
         alarm.description,
-        await _findNextAlarmDateTime(alarm.time), platformChannelSpecifics,
+        findNextAlarmDateTime(alarm.time), platformChannelSpecifics,
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         payload: alarm.toJsonEncoding(),
@@ -50,7 +50,7 @@ void _registerAlarm(BuildContext context, Alarm alarm) async {
       _getAlarmId(alarm.id!, Days.DATETIME_WEEKDAY[day]),
           alarm.time.format(context),
           alarm.description,
-          await _findNextAlarmDateTime(alarm.time), platformChannelSpecifics,
+          findNextAlarmDateTime(alarm.time), platformChannelSpecifics,
           androidAllowWhileIdle: true,
           matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
           uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
@@ -61,7 +61,7 @@ void _registerAlarm(BuildContext context, Alarm alarm) async {
 }
 
 /// Calculates the DateTime for the next instance an alarm should ring.
-Future<tz.TZDateTime> _findNextAlarmDateTime(TimeOfDay time, [Days? day]) async {
+tz.TZDateTime findNextAlarmDateTime(TimeOfDay time, [Days? day]) {
   assert(_initialized);
 
   DateTime now = tz.TZDateTime.now(tz.local);
