@@ -7,6 +7,7 @@ import 'package:wake_together/pages/shared-alarms/authentication-forms.dart';
 import 'package:wake_together/widgets.dart';
 
 import '../../constants.dart';
+import 'alarm-channel-page.dart';
 
 /// Authentication Page for logging in thru Firebase Authentication.
 ///
@@ -193,7 +194,7 @@ class _SharedAlarmsListItem extends StatelessWidget {
             splashFactory: InkRipple.splashFactory,
             onTap: () =>
                 Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => AlarmChannelPage(alarmChannelOverview, fbBloc))),
+                    builder: (context) => AlarmChannelPage(alarmChannelOverview))),
             child: Container(
               padding: EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 24),
               child: Text(alarmChannelOverview.channelName ?? "<null>",
@@ -209,138 +210,3 @@ class _SharedAlarmsListItem extends StatelessWidget {
     );
   }
 }
-
-/// Displays the details of an AlarmChannel given its AlarmChannelOverview.
-class AlarmChannelPage extends StatelessWidget {
-  const AlarmChannelPage(this._alarmChannelOverview, this._fbBloc);
-
-  final AlarmChannelOverview _alarmChannelOverview;
-  final SharedAlarmsBloc _fbBloc;
-
-  @override
-  Widget build(BuildContext context) {
-    return Provider<SharedAlarmsBloc>(
-      create: (BuildContext context) => _fbBloc,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(_alarmChannelOverview.channelName ?? "<null>"),
-          backgroundColor: Theme
-              .of(context)
-              .colorScheme
-              .background,
-        ),
-        body: FutureBuilder(
-            future: _alarmChannelOverview.alarmChannel,
-            builder: (BuildContext context,
-                AsyncSnapshot<Stream<AlarmChannel>> streamSnapshot) {
-              return !streamSnapshot.hasData
-                  ? const Center(child: const CircularProgressIndicator())
-                  : StreamBuilder(
-                  stream: streamSnapshot.data,
-                  builder: (BuildContext context,
-                      AsyncSnapshot<AlarmChannel> alarmChannelSnap) {
-                    if (!alarmChannelSnap.hasData) {
-                      return const Center(
-                          child: const CircularProgressIndicator());
-                    }
-
-                    AlarmChannel alarmChannel = alarmChannelSnap.data!;
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _SubscribersBlock(alarmChannel),
-                      ],
-                    );
-                  });
-            }),
-      ),
-    );
-  }
-}
-
-class _SubscribersBlock extends StatelessWidget {
-  const _SubscribersBlock(this._alarmChannel);
-  final AlarmChannel _alarmChannel;
-
-  @override
-  Widget build(BuildContext context) {
-    return
-      Consumer<SharedAlarmsBloc>(
-        builder: (BuildContext context, SharedAlarmsBloc fbBloc, _) => Container(
-          alignment: Alignment.centerLeft,
-          margin: EdgeInsets.all(8),
-          padding: EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: Theme.of(context).colorScheme.background,
-          ),
-          child: FutureBuilder(
-            future: _alarmChannel.subscribers,
-            builder: (BuildContext context, AsyncSnapshot<Stream<List<String?>>> snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: const CircularProgressIndicator());
-              }
-
-              return StreamBuilder(
-                  stream: snapshot.data!,
-                  builder: (BuildContext context, AsyncSnapshot<List<String?>> snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: const CircularProgressIndicator());
-                    }
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("Subscribers", style: Theme
-                                .of(context)
-                                .textTheme
-                                .headline6),
-                            IconButton(
-                                icon: Icon(Icons.person_add),
-                                onPressed: () async {
-                                  String? username = await showInputDialog(
-                                    context: context,
-                                    title: "Add subscriber",
-                                    validator: (String? username) {
-
-                                      username = username?.trim().toLowerCase();
-
-                                      if (username == null || username.isEmpty) {
-                                        return "Username cannot be empty"
-                                      }
-                                    },
-                                    doneAction: "Add",
-                                  );
-
-                                  if (username != null) return;
-
-                                  bool success = await fbBloc.addUserToChannel(
-                                      username!, _alarmChannel);
-
-                                  if (!success) {
-                                    // Notify user if the username does not exist.
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                            content: Text(
-                                                "User does not exist")));
-                                  }
-                                }
-                            )
-                          ],
-                        ),
-                        for (String? name in snapshot.data!)
-                          if (name != null) Text(name),
-                      ],
-                    );
-                  });
-            },
-          ),
-        ),
-      );
-  }
-}
-

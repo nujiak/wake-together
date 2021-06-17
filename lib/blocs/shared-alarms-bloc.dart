@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:wake_together/constants.dart';
+import 'package:wake_together/data/firebase-helper.dart';
 import 'package:wake_together/data/models/alarm-channel.dart';
 
 /// Bloc handling all Firebase Authentication processes.
@@ -23,7 +24,7 @@ class SharedAlarmsBloc {
   }
 
   /// Initializes FlutterFire.
-  Future<void> init() async {
+  void init() async {
     await Firebase.initializeApp();
 
     FirebaseAuth.instance.userChanges().listen((user) {
@@ -34,9 +35,6 @@ class SharedAlarmsBloc {
       }
     });
   }
-
-  /// Returns the user id for the current account.
-  String get userId => FirebaseAuth.instance.currentUser!.uid;
 
   /// Brings the user to the registration page.
   void startRegistrationFlow() {
@@ -82,35 +80,6 @@ class SharedAlarmsBloc {
     _subscribedChannels = null;
     _username = null;
   }
-
-  /// Name for the field containing the username in /users/userid
-  static const String USERNAME_FIELD = "username";
-
-  /// Name for the field containing an alarm channel's owner's user id in
-  /// /channels/channelId
-  static const String OWNER_ID_FIELD = "ownerId";
-
-  /// Name for the field containing an alarm channel's name
-  /// in /channels/channelId and /users/userId/subscribed_channels/.
-  static const String CHANNEL_NAME_FIELD = "channelName";
-
-  /// Name for the sub-collection containing a user's subscribed alarm channels
-  /// in /user/userId/.
-  static const String SUBSCRIBED_CHANNELS_SUB = "subscribed_channels";
-
-  /// Name for the sub-collection containing an alarm channels' subscribers
-  /// in /channels/channelId.
-  static const String SUBSCRIBERS_SUB = "subscribers";
-
-  /// Name for the top-level collection containing all user documents.
-  static const String USERS_COLLECTION = "users";
-
-  /// Name for the top-level collection containing all alarm channels.
-  static const String CHANNELS_COLLECTION = "channels";
-
-  /// Absolute path to subscribed_channels Firestore sub-collection
-  /// for the current user.
-  String get subscribedChannelsPath => "/users/$userId/$SUBSCRIBED_CHANNELS_SUB";
 
   /// Stream for channels to listen for realtime changes.
   Stream<List<AlarmChannelOverview>>? _subscribedChannels;
@@ -181,33 +150,7 @@ class SharedAlarmsBloc {
     await channelDocument
         .collection("/$SUBSCRIBERS_SUB")
         .doc(userId)
-        .set({USERNAME_FIELD: await _getUsername(userId)});
-  }
-
-  /// Adds a user with targetUsername to an alarm channel.
-  Future<bool> addUserToChannel(String targetUsername, AlarmChannel alarmChannel) async {
-
-    targetUsername = targetUsername.trim().toLowerCase();
-
-    String? targetUserId = await _getUserId(targetUsername);
-
-    if (targetUserId == null) {
-      return false;
-    }
-
-    // Add user to channel's subscribers
-    await FirebaseFirestore.instance
-        .doc("/channels/${alarmChannel.channelId}/$SUBSCRIBERS_SUB/$targetUserId")
-        .set({USERNAME_FIELD: targetUsername});
-
-    // Add channel to user's subscribed_channels
-    await FirebaseFirestore.instance
-    .doc("/$USERS_COLLECTION/$targetUserId/$SUBSCRIBED_CHANNELS_SUB/${alarmChannel.channelId}")
-    .set({
-      CHANNEL_NAME_FIELD: alarmChannel.channelName,
-    });
-
-    return true;
+        .set({USERNAME_FIELD: await getUsername(userId)});
   }
 
   /// Stream for the current account's username.
@@ -224,37 +167,9 @@ class SharedAlarmsBloc {
     return _username!;
   }
 
-  /// Gets the username for a given userId.
-  Future<String?> _getUsername(String targetUserId) {
-    return FirebaseFirestore.instance
-        .doc("/users/$targetUserId")
-        .get()
-        .then((DocumentSnapshot docSnap) => docSnap.data()?["username"]);
-  }
-
-  /// Gets the userId for a given username.
-  Future<String?> _getUserId(String targetUsername) {
-    return FirebaseFirestore.instance
-        .collection(USERS_COLLECTION)
-        .where("username", isEqualTo: targetUsername)
-        .get()
-        .then((QuerySnapshot snapshot) => snapshot.docs)
-        .then((List<QueryDocumentSnapshot> snapshots) =>
-          snapshots.length == 0 ? null :snapshots[0].id);
-  }
-
-  /// Checks whether a username already exists.
-  Future<bool> _doesUsernameExist(String username) {
-    return FirebaseFirestore.instance
-        .collection("/users")
-        .where("username", isEqualTo: username)
-        .get()
-        .then((QuerySnapshot snapshot) => snapshot.size > 0);
-  }
-
   /// Registers a username for the current account
   Future<bool> registerUsername(String username) async {
-    if (await _doesUsernameExist(username)) {
+    if (await doesUsernameExist(username)) {
       return false;
     } else {
       await FirebaseFirestore.instance
