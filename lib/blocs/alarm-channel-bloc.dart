@@ -45,17 +45,22 @@ class AlarmChannelBloc {
   }
 
   /// Adds a voting option to the alarm.
-  Future<bool> addNewVoteOption(TimeOfDay time, AlarmChannel alarmChannel) async {
+  Future<bool> addNewVoteOption(Future<TimeOfDay?> timeFuture, AlarmChannel alarmChannel) async {
+
+    final TimeOfDay? time = await timeFuture;
+    if (time == null) {
+      return false;
+    }
 
     // Convert to the nearest DateTime
     DateTime dateTime = findNextAlarmDateTime(time);
     Timestamp timeStamp = Timestamp.fromDate(dateTime);
 
-    CollectionReference votesSubCollection = FirebaseFirestore.instance
-        .collection("/$CHANNELS_COLLECTION/${alarmChannel.channelId}/votes");
+    CollectionReference optionsSubCollection = FirebaseFirestore.instance
+        .collection("/$CHANNELS_COLLECTION/${alarmChannel.channelId}/$OPTIONS_SUB");
 
     // Check if the vote option already exists
-    bool alreadyExists = await votesSubCollection
+    bool alreadyExists = await optionsSubCollection
         .where("time", isEqualTo: timeStamp)
         .get()
         .then((QuerySnapshot snapshot) => snapshot.docs.length > 0);
@@ -65,7 +70,13 @@ class AlarmChannelBloc {
     }
 
     // Add the option
-    await votesSubCollection.add({"time": timeStamp});
+    await optionsSubCollection.add({"time": timeStamp});
     return true;
+  }
+
+  void vote(AlarmOption option) async {
+    await FirebaseFirestore.instance
+        .doc("/$CHANNELS_COLLECTION/${alarmChannelOverview.channelId}/$VOTES_SUB/$userId")
+        .set({TIME_FIELD: option.timeStamp});
   }
 }

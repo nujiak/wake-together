@@ -12,6 +12,10 @@ const String OWNER_ID_FIELD = "ownerId";
 /// in /channels/channelId and /users/userId/subscribed_channels/.
 const String CHANNEL_NAME_FIELD = "channelName";
 
+/// Name for the field containing an alarm option's time in
+/// /channels/channelId/options/.
+const String TIME_FIELD = "time";
+
 /// Name for the sub-collection containing a user's subscribed alarm channels
 /// in /user/userId/.
 const String SUBSCRIBED_CHANNELS_SUB = "subscribed_channels";
@@ -19,6 +23,14 @@ const String SUBSCRIBED_CHANNELS_SUB = "subscribed_channels";
 /// Name for the sub-collection containing an alarm channels' subscribers
 /// in /channels/channelId.
 const String SUBSCRIBERS_SUB = "subscribers";
+
+/// Name for the sub-collection containing an alarm channel's current
+/// voting options in /channels/channelId.
+const String OPTIONS_SUB = "options";
+
+/// Name for the sub-collection containing an alarm channel's current
+/// voting options in /channels/channelId.
+const String VOTES_SUB = "votes";
 
 /// Name for the top-level collection containing all user documents.
 const String USERS_COLLECTION = "users";
