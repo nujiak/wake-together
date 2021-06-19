@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -183,9 +184,9 @@ class _AlarmBlock extends StatelessWidget {
                   return StreamBuilder(
                     stream: _alarmChannel.currentVote,
                     builder: (BuildContext context,
-                        AsyncSnapshot<AlarmOption?> voteSnapshot) {
+                        AsyncSnapshot<Timestamp?> voteSnapshot) {
 
-                      AlarmOption? selection = voteSnapshot.data;
+                      Timestamp? selection = voteSnapshot.data;
 
                       return Column(
                         children: [
@@ -205,10 +206,11 @@ class _AlarmBlock extends StatelessWidget {
                               groupValue: selection,
                               title: Text(option.time.format(context)),
                               subtitle: Text(option.dateTime.toString()),
-                              onChanged: (AlarmOption? value) {
-                                bloc.vote(option);
+                              onChanged: (Timestamp? value) {
+                                if (value != null) bloc.vote(value);
                               },
-                              value: option,
+                              secondary: Text(option.votes.toString()),
+                              value: option.timestamp,
                             )
                         ],
                       );

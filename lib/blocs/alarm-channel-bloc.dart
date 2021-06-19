@@ -115,10 +115,10 @@ class AlarmChannelBloc {
   }
 
   /// Registers the user's vote.
-  void vote(AlarmOption option) async {
+  void vote(Timestamp timestamp) async {
     await FirebaseFirestore.instance
         .doc("/$CHANNELS_COLLECTION/${alarmChannelOverview.channelId}/$VOTES_SUB/$userId")
-        .set({TIME_FIELD: option.timeStamp});
+        .set({TIME_FIELD: timestamp});
 
     // Recount all votes
     recountVotes();

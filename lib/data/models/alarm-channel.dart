@@ -21,20 +21,32 @@ class AlarmChannel {
   final String? ownerId;
   final Future<Stream<List<String?>>> subscribers;
   final Stream<List<AlarmOption>> alarmOptions;
-  final Stream<AlarmOption?> currentVote;
+  final Stream<Timestamp?> currentVote;
 }
 
 class AlarmOption {
-  AlarmOption(Timestamp timeStamp) {
-    dateTime = DateTime.fromMillisecondsSinceEpoch(timeStamp.millisecondsSinceEpoch);
+  AlarmOption(this.timestamp, this.votes) {
+    dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp.millisecondsSinceEpoch);
     time = TimeOfDay.fromDateTime(dateTime);
   }
 
+  /// Timestamp of the options.
+  ///
+  /// For firestore operations.
+  late final Timestamp timestamp;
+
+  /// DateTime representation of timestamp.
+  ///
+  /// For displaying date.
   late final DateTime dateTime;
+
+  /// timeOfDay representation of timestamp.
+  ///
+  /// For formatting and displaying time.
   late final TimeOfDay time;
 
-  Timestamp get timeStamp =>
-      Timestamp.fromMillisecondsSinceEpoch(dateTime.millisecondsSinceEpoch);
+  /// The vote count of this option.
+  final int votes;
 
   @override
   bool operator ==(Object other) {

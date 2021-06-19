@@ -122,11 +122,11 @@ class SharedAlarmsBloc {
 
   /// Returns a stream providing the current user vote for the alarm
   /// channel with channelId.
-  Stream<AlarmOption?> _getAlarmChannelCurrentVote(String channelId) {
+  Stream<Timestamp?> _getAlarmChannelCurrentVote(String channelId) {
     return FirebaseFirestore.instance
         .doc("/$CHANNELS_COLLECTION/$channelId/$VOTES_SUB/$userId")
         .snapshots()
-        .map((DocumentSnapshot docSnap) => AlarmOption(docSnap.data()?[TIME_FIELD]));
+        .map((DocumentSnapshot docSnap) => docSnap.data()?[TIME_FIELD]);
   }
 
   /// Returns a stream providing the alarm options for the alarm channel
@@ -139,7 +139,7 @@ class SharedAlarmsBloc {
         .map((QuerySnapshot snapshot) => snapshot.docs)
         .map((List<QueryDocumentSnapshot> docs) {
       return docs.map((QueryDocumentSnapshot docSnap) =>
-          AlarmOption(docSnap.data()[TIME_FIELD]));
+          AlarmOption(docSnap.data()[TIME_FIELD], docSnap.data()[VOTES_FIELD] ?? 0));
     })
         .map((Iterable<AlarmOption> alarmOptions) => alarmOptions.toList());
   }
