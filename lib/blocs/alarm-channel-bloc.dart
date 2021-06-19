@@ -1,3 +1,5 @@
+import "dart:collection";
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -9,9 +11,14 @@ class AlarmChannelBloc {
 
   AlarmChannelBloc(this.alarmChannelOverview) {
     init();
+    channelId = this.alarmChannelOverview.channelId;
   }
 
+  /// AlarmChannelOverview tied to this bloc.
   final AlarmChannelOverview alarmChannelOverview;
+
+  /// Channel ID of the alarm tied to this bloc.
+  late final String channelId;
 
   void init() async {
     // Should have been initialized by SharedAlarmsBloc.
@@ -74,9 +81,46 @@ class AlarmChannelBloc {
     return true;
   }
 
+  /// Recounts all the votes in the alarm alarm channel.
+  ///
+  /// To be moved into a Cloud Function.
+  void recountVotes() async {
+    // Fetch all votes from firestore.
+    List<QueryDocumentSnapshot> voteSnapshots = await FirebaseFirestore.instance
+        .collection("/$CHANNELS_COLLECTION/$channelId/$VOTES_SUB")
+        .get()
+        .then((QuerySnapshot querySnapshot) => querySnapshot.docs);
+
+    // Stores the vote counts of an option.
+    HashMap<Timestamp, int> voteCounts = HashMap();
+
+    // Count all votes.
+    for (QueryDocumentSnapshot voteSnapshot in voteSnapshots) {
+      Timestamp timestamp = voteSnapshot.data()[TIME_FIELD];
+      voteCounts[timestamp] = (voteCounts[timestamp] ?? 0) + 1;
+    }
+
+    // Fetch all options from firestore.
+    List<QueryDocumentSnapshot> optionsSnapshots = await FirebaseFirestore.instance
+    .collection("/$CHANNELS_COLLECTION/$channelId/$OPTIONS_SUB")
+    .get()
+    .then((QuerySnapshot querySnapshot) => querySnapshot.docs);
+
+    // Add vote counts to each option in firestore.
+    for (QueryDocumentSnapshot optionSnapshot in optionsSnapshots) {
+      Timestamp? timestamp = optionSnapshot.data()[TIME_FIELD];
+      optionSnapshot.reference.set(
+          {VOTES_FIELD: voteCounts[timestamp] ?? 0}, SetOptions(merge: true));
+    }
+  }
+
+  /// Registers the user's vote.
   void vote(AlarmOption option) async {
     await FirebaseFirestore.instance
         .doc("/$CHANNELS_COLLECTION/${alarmChannelOverview.channelId}/$VOTES_SUB/$userId")
         .set({TIME_FIELD: option.timeStamp});
+
+    // Recount all votes
+    recountVotes();
   }
 }

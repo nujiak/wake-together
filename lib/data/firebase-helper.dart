@@ -16,6 +16,10 @@ const String CHANNEL_NAME_FIELD = "channelName";
 /// /channels/channelId/options/.
 const String TIME_FIELD = "time";
 
+/// Name for the field containing an alarm option's vote count in
+/// /channels/channelId/options/.
+const String VOTES_FIELD = "votes";
+
 /// Name for the sub-collection containing a user's subscribed alarm channels
 /// in /user/userId/.
 const String SUBSCRIBED_CHANNELS_SUB = "subscribed_channels";
