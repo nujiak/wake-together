@@ -4,6 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 /// Name for the field containing the username in /users/userid
 const String USERNAME_FIELD = "username";
 
+/// Name for the field containing an alarm channel's id in
+/// /channels/channelId
+const String CHANNEL_ID_FIELD = "channelId";
+
 /// Name for the field containing an alarm channel's owner's user id in
 /// /channels/channelId
 const String OWNER_ID_FIELD = "ownerId";
@@ -11,6 +15,10 @@ const String OWNER_ID_FIELD = "ownerId";
 /// Name for the field containing an alarm channel's name
 /// in /channels/channelId and /users/userId/subscribed_channels/.
 const String CHANNEL_NAME_FIELD = "channelName";
+
+/// Name for the field containing an alarm channel's current highest voted
+/// alarm option in /users/userId/subscribed_channels/.
+const String CURRENT_ALARM = "currentAlarm";
 
 /// Name for the field containing an alarm option's time in
 /// /channels/channelId/options/.

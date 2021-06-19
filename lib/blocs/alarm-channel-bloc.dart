@@ -38,8 +38,8 @@ class AlarmChannelBloc {
 
     // Add user to channel's subscribers
     await FirebaseFirestore.instance
-        .doc("/channels/${alarmChannel.channelId}/$SUBSCRIBERS_SUB/$targetUserId")
-        .set({USERNAME_FIELD: targetUsername});
+        .doc("/channels/$channelId/$SUBSCRIBERS_SUB/$targetUserId")
+        .set({CHANNEL_ID_FIELD: channelId, USERNAME_FIELD: targetUsername});
 
     // Add channel to user's subscribed_channels
     await FirebaseFirestore.instance
@@ -111,6 +111,34 @@ class AlarmChannelBloc {
       Timestamp? timestamp = optionSnapshot.data()[TIME_FIELD];
       optionSnapshot.reference.set(
           {VOTES_FIELD: voteCounts[timestamp] ?? 0}, SetOptions(merge: true));
+    }
+
+    // Calculate highest voted timestamp
+    Timestamp? highestVoted;
+    int highestCount = 0;
+
+    // Find most votes
+    for (Timestamp timestamp in voteCounts.keys) {
+      if (voteCounts[timestamp]! > highestCount) {
+        highestVoted = timestamp;
+        highestCount = voteCounts[timestamp]!;
+      }
+    }
+
+    // Save highest voted option in /users/userId/subscribed_channels/channelId/
+    List<DocumentReference> channelsInSubscribedChannels =
+        await FirebaseFirestore.instance
+            .collectionGroup(SUBSCRIBED_CHANNELS_SUB)
+            .where(CHANNEL_ID_FIELD, isEqualTo: channelId)
+            .get()
+            .then((QuerySnapshot snapshot) => snapshot.docs)
+            .then((List<QueryDocumentSnapshot> docSnaps) => docSnaps
+                .map((QueryDocumentSnapshot docSnap) => docSnap.reference)
+                .toList());
+
+    // Update the highest voted option in each alarm channel
+    for (DocumentReference userAlarmChannel in channelsInSubscribedChannels) {
+      await userAlarmChannel.set({CURRENT_ALARM: highestVoted}, SetOptions(merge: true));
     }
   }
 

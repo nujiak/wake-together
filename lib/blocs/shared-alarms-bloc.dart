@@ -170,6 +170,7 @@ class SharedAlarmsBloc {
     // Add the new channel to the subscribed channels sub-collection,
     // including the channel's documentId and name.
     await FirebaseFirestore.instance.doc("$subscribedChannelsPath/${channelDocument.id}").set({
+      CHANNEL_ID_FIELD: channelDocument.id,
       CHANNEL_NAME_FIELD: channelName,
     });
 
