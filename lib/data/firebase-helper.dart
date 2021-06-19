@@ -18,7 +18,7 @@ const String CHANNEL_NAME_FIELD = "channelName";
 
 /// Name for the field containing an alarm channel's current highest voted
 /// alarm option in /users/userId/subscribed_channels/.
-const String CURRENT_ALARM = "currentAlarm";
+const String CURRENT_ALARM_FIELD = "currentAlarm";
 
 /// Name for the field containing an alarm option's time in
 /// /channels/channelId/options/.

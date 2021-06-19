@@ -138,7 +138,7 @@ class AlarmChannelBloc {
 
     // Update the highest voted option in each alarm channel
     for (DocumentReference userAlarmChannel in channelsInSubscribedChannels) {
-      await userAlarmChannel.set({CURRENT_ALARM: highestVoted}, SetOptions(merge: true));
+      await userAlarmChannel.set({CURRENT_ALARM_FIELD: highestVoted}, SetOptions(merge: true));
     }
   }
 
