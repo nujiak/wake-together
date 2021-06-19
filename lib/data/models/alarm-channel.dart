@@ -5,15 +5,16 @@ import 'package:flutter/material.dart';
 /// Alarms page.
 class AlarmChannelOverview {
   AlarmChannelOverview(this.channelName, this.alarmChannel, this.channelId,
-      Timestamp? currentAlarm) {
-    this.currentAlarm = currentAlarm == null
+      this.currentAlarmTimestamp) {
+    this.currentAlarm = currentAlarmTimestamp == null
         ? null
-        : TimeOfDay.fromDateTime(currentAlarm.toDate());
+        : TimeOfDay.fromDateTime(currentAlarmTimestamp!.toDate());
   }
 
   final String? channelName;
   final Future<Stream<AlarmChannel>> alarmChannel;
   final String channelId;
+  final Timestamp? currentAlarmTimestamp;
   late final TimeOfDay? currentAlarm;
 }
 

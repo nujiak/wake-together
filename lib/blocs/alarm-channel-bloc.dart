@@ -47,6 +47,7 @@ class AlarmChannelBloc {
         .set({
       CHANNEL_ID_FIELD: channelId,
       CHANNEL_NAME_FIELD: alarmChannel.channelName,
+      CURRENT_ALARM_FIELD: alarmChannelOverview.currentAlarm,
     });
 
     return true;
@@ -137,7 +138,13 @@ class AlarmChannelBloc {
                 .map((QueryDocumentSnapshot docSnap) => docSnap.reference)
                 .toList());
 
-    // Update the highest voted option in each alarm channel
+    // Update the highest voted option in the alarm channel
+    await FirebaseFirestore.instance
+        .doc("/$CHANNELS_COLLECTION/$channelId")
+        .set({CURRENT_ALARM_FIELD: highestVoted}, SetOptions(merge: true));
+
+    // Update the highest voted option in each alarm channel under each
+    // subscriber's subscribed_channels
     for (DocumentReference userAlarmChannel in channelsInSubscribedChannels) {
       await userAlarmChannel.set({CURRENT_ALARM_FIELD: highestVoted}, SetOptions(merge: true));
     }
