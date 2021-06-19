@@ -100,8 +100,11 @@ class SharedAlarmsBloc {
   /// an AlarmChannelOverview.
   AlarmChannelOverview _alarmChannelOverviewFrom(
       QueryDocumentSnapshot docSnap) {
-    return AlarmChannelOverview(docSnap.data()[CHANNEL_NAME_FIELD],
-        _getAlarmChannel(docSnap.id), docSnap.id);
+    return AlarmChannelOverview(
+        docSnap.data()[CHANNEL_NAME_FIELD],
+        _getAlarmChannel(docSnap.id),
+        docSnap.id,
+        docSnap.data()[CURRENT_ALARM_FIELD]);
   }
 
   /// Returns a Future that provides the AlarmChannel representing the alarm

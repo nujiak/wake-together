@@ -196,12 +196,16 @@ class _SharedAlarmsListItem extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(
                     builder: (context) => AlarmChannelPage(alarmChannelOverview))),
             child: Container(
-              padding: EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 24),
-              child: Text(alarmChannelOverview.channelName ?? "<null>",
-                style: Theme
-                    .of(context)
-                    .textTheme
-                    .headline3,
+              padding: EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(alarmChannelOverview.channelName ?? "<null>",
+                    style: Theme.of(context).textTheme.headline4),
+                  if (alarmChannelOverview.currentAlarm != null)
+                    Text(alarmChannelOverview.currentAlarm!.format(context),
+                    style: Theme.of(context).textTheme.headline6),
+                ],
               ),
             ),
           ),

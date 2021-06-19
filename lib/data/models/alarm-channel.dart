@@ -4,11 +4,17 @@ import 'package:flutter/material.dart';
 /// Stores the information to be displayed in each list item in the Shared
 /// Alarms page.
 class AlarmChannelOverview {
-  AlarmChannelOverview(this.channelName, this.alarmChannel, this.channelId);
+  AlarmChannelOverview(this.channelName, this.alarmChannel, this.channelId,
+      Timestamp? currentAlarm) {
+    this.currentAlarm = currentAlarm == null
+        ? null
+        : TimeOfDay.fromDateTime(currentAlarm.toDate());
+  }
 
   final String? channelName;
   final Future<Stream<AlarmChannel>> alarmChannel;
   final String channelId;
+  late final TimeOfDay? currentAlarm;
 }
 
 /// Stores the detailed information of each alarm channel.
