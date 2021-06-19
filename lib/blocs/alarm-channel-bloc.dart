@@ -39,12 +39,13 @@ class AlarmChannelBloc {
     // Add user to channel's subscribers
     await FirebaseFirestore.instance
         .doc("/channels/$channelId/$SUBSCRIBERS_SUB/$targetUserId")
-        .set({CHANNEL_ID_FIELD: channelId, USERNAME_FIELD: targetUsername});
+        .set({USERNAME_FIELD: targetUsername});
 
     // Add channel to user's subscribed_channels
     await FirebaseFirestore.instance
         .doc("/$USERS_COLLECTION/$targetUserId/$SUBSCRIBED_CHANNELS_SUB/${alarmChannel.channelId}")
         .set({
+      CHANNEL_ID_FIELD: channelId,
       CHANNEL_NAME_FIELD: alarmChannel.channelName,
     });
 
