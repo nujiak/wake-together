@@ -46,12 +46,14 @@ class AlarmChannelPage extends StatelessWidget {
 
                     AlarmChannel alarmChannel = alarmChannelSnap.data!;
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _SubscribersBlock(alarmChannel),
-                        _AlarmBlock(alarmChannel),
-                      ],
+                    return SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _SubscribersBlock(alarmChannel),
+                          _AlarmBlock(alarmChannel),
+                        ],
+                      ),
                     );
                   });
             }),
@@ -168,15 +170,6 @@ class _AlarmBlock extends StatelessWidget {
         builder: (BuildContext context, AlarmChannelBloc bloc, _) =>
             Container(
               alignment: Alignment.centerLeft,
-              margin: EdgeInsets.all(8),
-              padding: EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(_cardRadius),
-                color: Theme
-                    .of(context)
-                    .colorScheme
-                    .background,
-              ),
               child: StreamBuilder(
                 stream: _alarmChannel.alarmOptions,
                 builder: (BuildContext context,
@@ -189,18 +182,52 @@ class _AlarmBlock extends StatelessWidget {
                       Timestamp? selection = voteSnapshot.data;
 
                       return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (_alarmChannel.ownerId == userId)
-                            ListTile(
-                              title: Text("Add option"),
-                              onTap: () {
-                                Future<TimeOfDay?> timeFuture = showTimePicker(
-                                    context: context,
-                                    initialTime: TimeOfDay.now());
-                                bloc.addNewVoteOption(
-                                    timeFuture, _alarmChannel);
-                              },
+                          Container(
+                            padding: EdgeInsets.only(left: 16, right: 16, top: 8),
+                            alignment: Alignment.center,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    child: Text("Alarm",
+                                        style: Theme.of(context).textTheme.headline6),
+                                  ),
+                                ),
+                                if (_alarmChannel.ownerId == userId)
+                                  IconButton(
+                                    icon: Icon(Icons.add_alarm),
+                                    onPressed: () {
+                                      Future<TimeOfDay?> timeFuture =
+                                          showTimePicker(
+                                              context: context,
+                                              initialTime: TimeOfDay.now());
+                                      bloc.addNewVoteOption(
+                                          timeFuture, _alarmChannel);
+                                    },
+                                  ),
+                              ],
                             ),
+                          ),
+                          Container(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                if (selection != null)
+                                  TextButton.icon(
+                                    style: ButtonStyle(
+                                        foregroundColor:
+                                            MaterialStateProperty.all(
+                                                Colors.white)),
+                                    icon: Icon(Icons.cancel),
+                                    label: Text("Opt out"),
+                                    onPressed: () {},
+                                  )
+                              ],
+                            ),
+                          ),
                           for (AlarmOption option in snapshot.data ?? [])
                             RadioListTile(
                               groupValue: selection,
