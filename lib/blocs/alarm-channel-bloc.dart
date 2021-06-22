@@ -159,4 +159,14 @@ class AlarmChannelBloc {
     // Recount all votes
     recountVotes();
   }
+
+  /// Opts the user out of the current vote.
+  void optOut() async {
+    await FirebaseFirestore.instance
+        .doc(("/$CHANNELS_COLLECTION/${alarmChannelOverview.channelId}/$VOTES_SUB/$userId"))
+        .delete();
+
+    // Recount all votes
+    recountVotes();
+  }
 }

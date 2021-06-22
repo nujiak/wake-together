@@ -223,7 +223,7 @@ class _AlarmBlock extends StatelessWidget {
                                                 Colors.white)),
                                     icon: Icon(Icons.cancel),
                                     label: Text("Opt out"),
-                                    onPressed: () {},
+                                    onPressed: bloc.optOut,
                                   )
                               ],
                             ),
