@@ -83,17 +83,9 @@ class _SubscribersBlock extends StatelessWidget {
                     .colorScheme
                     .background,
               ),
-              child: FutureBuilder(
-                future: _alarmChannel.subscribers,
-                builder: (BuildContext context,
-                    AsyncSnapshot<Stream<List<String?>>> snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(
-                        child: const CircularProgressIndicator());
-                  }
-
-                  return StreamBuilder(
-                      stream: snapshot.data!,
+              child: Container(
+                child:  StreamBuilder(
+                      stream: _alarmChannel.subscribers,
                       builder: (BuildContext context,
                           AsyncSnapshot<List<String?>> snapshot) {
                         if (!snapshot.hasData) {
@@ -151,8 +143,7 @@ class _SubscribersBlock extends StatelessWidget {
                               if (name != null) Text(name),
                           ],
                         );
-                      });
-                },
+                      })
               ),
             ),
       );

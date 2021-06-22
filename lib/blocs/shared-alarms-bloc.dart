@@ -147,8 +147,7 @@ class SharedAlarmsBloc {
         .map((Iterable<AlarmOption> alarmOptions) => alarmOptions.toList());
   }
 
-  Future<Stream<List<String?>>> _getAlarmChannelSubscribers(
-      String channelId) async {
+  Stream<List<String?>> _getAlarmChannelSubscribers(String channelId) {
     return FirebaseFirestore.instance
         .collection("/$CHANNELS_COLLECTION/$channelId/$SUBSCRIBERS_SUB")
         .snapshots()

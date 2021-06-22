@@ -26,7 +26,7 @@ class AlarmChannel {
   final String channelId;
   final String? channelName;
   final String? ownerId;
-  final Future<Stream<List<String?>>> subscribers;
+  final Stream<List<String?>> subscribers;
   final Stream<List<AlarmOption>> alarmOptions;
   final Stream<Timestamp?> currentVote;
 }
