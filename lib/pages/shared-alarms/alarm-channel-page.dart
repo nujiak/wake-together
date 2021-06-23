@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wake_together/blocs/alarm-channel-bloc.dart';
+import 'package:wake_together/colors.dart';
 import 'package:wake_together/data/firebase-helper.dart';
 import 'package:wake_together/data/models/alarm-channel.dart';
 
@@ -24,10 +25,7 @@ class AlarmChannelPage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(_alarmChannelOverview.channelName ?? "<null>"),
-          backgroundColor: Theme
-              .of(context)
-              .colorScheme
-              .background,
+          backgroundColor: Theme.of(context).colorScheme.background,
         ),
         body: FutureBuilder(
             future: _alarmChannelOverview.alarmChannel,
@@ -36,26 +34,26 @@ class AlarmChannelPage extends StatelessWidget {
               return !streamSnapshot.hasData
                   ? const Center(child: const CircularProgressIndicator())
                   : StreamBuilder(
-                  stream: streamSnapshot.data,
-                  builder: (BuildContext context,
-                      AsyncSnapshot<AlarmChannel> alarmChannelSnap) {
-                    if (!alarmChannelSnap.hasData) {
-                      return const Center(
-                          child: const CircularProgressIndicator());
-                    }
+                      stream: streamSnapshot.data,
+                      builder: (BuildContext context,
+                          AsyncSnapshot<AlarmChannel> alarmChannelSnap) {
+                        if (!alarmChannelSnap.hasData) {
+                          return const Center(
+                              child: const CircularProgressIndicator());
+                        }
 
-                    AlarmChannel alarmChannel = alarmChannelSnap.data!;
+                        AlarmChannel alarmChannel = alarmChannelSnap.data!;
 
-                    return SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _SubscribersBlock(alarmChannel),
-                          _AlarmBlock(alarmChannel),
-                        ],
-                      ),
-                    );
-                  });
+                        return SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _SubscribersBlock(alarmChannel),
+                              _AlarmBlock(alarmChannel),
+                            ],
+                          ),
+                        );
+                      });
             }),
       ),
     );
@@ -69,84 +67,100 @@ class _SubscribersBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return
-      Consumer<AlarmChannelBloc>(
-        builder: (BuildContext context, AlarmChannelBloc bloc, _) =>
-            Container(
-              alignment: Alignment.centerLeft,
-              margin: EdgeInsets.all(8),
-              padding: EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(_cardRadius),
-                color: Theme
-                    .of(context)
-                    .colorScheme
-                    .background,
-              ),
-              child: Container(
-                child:  StreamBuilder(
-                      stream: _alarmChannel.subscribers,
-                      builder: (BuildContext context,
-                          AsyncSnapshot<List<String?>> snapshot) {
-                        if (!snapshot.hasData) {
-                          return const Center(
-                              child: const CircularProgressIndicator());
-                        }
+    return Theme(
+      data: Theme.of(context).copyWith(
+        dividerColor: Colors.transparent,
+        accentColor: Colors.blue,
+      ),
+      child: Consumer<AlarmChannelBloc>(
+        builder: (BuildContext context, AlarmChannelBloc bloc, _) => Container(
+          alignment: Alignment.centerLeft,
+          margin: EdgeInsets.all(8),
+          padding: EdgeInsets.all(8),
+          child: StreamBuilder(
+              stream: _alarmChannel.subscribers,
+              builder: (BuildContext context,
+                  AsyncSnapshot<List<String?>> snapshot) {
+                final List<String?>? users = snapshot.data;
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("Subscribers", style: Theme
-                                    .of(context)
-                                    .textTheme
-                                    .headline6),
-                                IconButton(
-                                    icon: Icon(Icons.person_add),
-                                    onPressed: () async {
-                                      String? username = await showInputDialog(
-                                        context: context,
-                                        title: "Add subscriber",
-                                        validator: (String? username) {
-                                          username =
-                                              username?.trim().toLowerCase();
+                final String subscriberCount = users == null
+                    ? "Subscribers"
+                    : users.length == 1
+                        ? "1 Subscriber"
+                        : "${users.length} Subscribers";
 
-                                          if (username == null ||
-                                              username.isEmpty) {
-                                            return "Username cannot be empty";
-                                          }
-                                        },
-                                        doneAction: "Add",
-                                      );
+                final bool isOwner = _alarmChannel.ownerId == userId;
 
-                                      if (username == null) return;
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(_cardRadius),
+                  child: Material(
+                    color: Theme.of(context).colorScheme.background,
+                    child: ExpansionTile(
+                        title: Text(subscriberCount),
+                        leading: !isOwner
+                        ? Icon(Icons.people)
+                        : InkResponse(
+                            child: Icon(Icons.person_add),
+                            onTap: () async {
+                              String? username = await showInputDialog(
+                                context: context,
+                                title: "Add subscriber",
+                                validator: (String? username) {
+                                  username = username?.trim().toLowerCase();
 
-                                      bool success = await bloc
-                                          .addUserToChannel(
-                                          username, _alarmChannel);
+                                  if (username == null || username.isEmpty) {
+                                    return "Username cannot be empty";
+                                  }
+                                },
+                                doneAction: "Add",
+                              );
 
-                                      if (!success) {
-                                        // Notify user if the username does not exist.
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                            SnackBar(
-                                                content: Text(
-                                                    "User does not exist")));
-                                      }
-                                    }
-                                )
-                              ],
-                            ),
-                            for (String? name in snapshot.data!)
-                              if (name != null) Text(name),
-                          ],
-                        );
-                      })
-              ),
-            ),
-      );
+                              if (username == null) return;
+
+                              bool success = await bloc.addUserToChannel(
+                                  username, _alarmChannel);
+
+                              if (!success) {
+                                // Notify user if the username does not exist.
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text("User does not exist")));
+                              }
+                            }),
+                        children: [
+                          AnimatedSwitcher(
+                              duration: Duration(milliseconds: 300),
+                              child: users == null
+                                  ? Center(
+                                      child: CircularProgressIndicator(),
+                                    )
+                                  : Container(
+                                constraints: BoxConstraints(maxHeight: 192),
+                                    child: ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: users.length,
+                                        itemBuilder:
+                                            (BuildContext context, int position) {
+                                          return ListTile(
+                                            visualDensity: VisualDensity.comfortable,
+                                            leading: Icon(Icons.person, color: toColor(users[position]!)),
+                                            title: Text(users[position]!),
+                                            trailing: !isOwner
+                                                    ? null
+                                                    : IconButton(
+                                                        icon: Icon(Icons.delete),
+                                                        onPressed: () {},
+                                                      ),
+                                          );
+                                        }),
+                                  )),
+                        ]),
+                  ),
+                );
+              }),
+        ),
+      ),
+    );
   }
 }
 
@@ -158,8 +172,7 @@ class _AlarmBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<AlarmChannelBloc>(
-        builder: (BuildContext context, AlarmChannelBloc bloc, _) =>
-            Container(
+        builder: (BuildContext context, AlarmChannelBloc bloc, _) => Container(
               alignment: Alignment.centerLeft,
               child: StreamBuilder(
                 stream: _alarmChannel.alarmOptions,
@@ -169,14 +182,14 @@ class _AlarmBlock extends StatelessWidget {
                     stream: _alarmChannel.currentVote,
                     builder: (BuildContext context,
                         AsyncSnapshot<Timestamp?> voteSnapshot) {
-
                       Timestamp? selection = voteSnapshot.data;
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: EdgeInsets.only(left: 16, right: 16, top: 8),
+                            padding:
+                                EdgeInsets.only(left: 16, right: 16, top: 8),
                             alignment: Alignment.center,
                             child: Row(
                               children: [
@@ -184,7 +197,9 @@ class _AlarmBlock extends StatelessWidget {
                                   child: Container(
                                     alignment: Alignment.center,
                                     child: Text("Alarm",
-                                        style: Theme.of(context).textTheme.headline6),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headline6),
                                   ),
                                 ),
                                 if (_alarmChannel.ownerId == userId)
