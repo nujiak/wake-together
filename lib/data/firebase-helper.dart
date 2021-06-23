@@ -28,6 +28,10 @@ const String TIME_FIELD = "time";
 /// /channels/channelId/options/.
 const String VOTES_FIELD = "votes";
 
+/// Name for the field containing a boolean representing whether a user has
+/// voted in an alarm channel in /users/userId/subscribed_channels/channelId/.
+const String HAS_VOTED_FIELD = "hasVoted";
+
 /// Name for the sub-collection containing a user's subscribed alarm channels
 /// in /user/userId/.
 const String SUBSCRIBED_CHANNELS_SUB = "subscribed_channels";

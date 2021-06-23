@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 /// Alarms page.
 class AlarmChannelOverview {
   AlarmChannelOverview(this.channelName, this.alarmChannel, this.channelId,
-      this.currentAlarmTimestamp) {
+      this.currentAlarmTimestamp, this.isActivated) {
     this.currentAlarm = currentAlarmTimestamp == null
         ? null
         : TimeOfDay.fromDateTime(currentAlarmTimestamp!.toDate());
@@ -16,6 +16,7 @@ class AlarmChannelOverview {
   final String channelId;
   final Timestamp? currentAlarmTimestamp;
   late final TimeOfDay? currentAlarm;
+  final bool isActivated;
 }
 
 /// Stores the detailed information of each alarm channel.

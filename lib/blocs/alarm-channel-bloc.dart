@@ -153,8 +153,12 @@ class AlarmChannelBloc {
   /// Registers the user's vote.
   void vote(Timestamp timestamp) async {
     await FirebaseFirestore.instance
-        .doc("/$CHANNELS_COLLECTION/${alarmChannelOverview.channelId}/$VOTES_SUB/$userId")
+        .doc("/$CHANNELS_COLLECTION/$channelId/$VOTES_SUB/$userId")
         .set({TIME_FIELD: timestamp});
+
+    // Register vote under the user
+    await FirebaseFirestore.instance.doc("/$USERS_COLLECTION/$userId/$SUBSCRIBED_CHANNELS_SUB/$channelId")
+    .set({HAS_VOTED_FIELD: true}, SetOptions(merge: true));
 
     // Recount all votes
     recountVotes();
@@ -165,6 +169,10 @@ class AlarmChannelBloc {
     await FirebaseFirestore.instance
         .doc(("/$CHANNELS_COLLECTION/${alarmChannelOverview.channelId}/$VOTES_SUB/$userId"))
         .delete();
+
+    // Register opt out under the user
+    await FirebaseFirestore.instance.doc("/$USERS_COLLECTION/$userId/$SUBSCRIBED_CHANNELS_SUB/$channelId")
+        .set({HAS_VOTED_FIELD: false}, SetOptions(merge: true));
 
     // Recount all votes
     recountVotes();

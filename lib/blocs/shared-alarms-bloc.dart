@@ -104,7 +104,8 @@ class SharedAlarmsBloc {
         docSnap.data()[CHANNEL_NAME_FIELD],
         _getAlarmChannel(docSnap.id),
         docSnap.id,
-        docSnap.data()[CURRENT_ALARM_FIELD]);
+        docSnap.data()[CURRENT_ALARM_FIELD],
+        docSnap.data()[HAS_VOTED_FIELD] ?? false);
   }
 
   /// Returns a Future that provides the AlarmChannel representing the alarm
