@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wake_together/blocs/shared-alarms-bloc.dart';
+import 'package:wake_together/colors.dart';
 import 'package:wake_together/data/models/alarm-channel.dart';
 import 'package:wake_together/pages/shared-alarms/authentication-forms.dart';
 import 'package:wake_together/widgets.dart';
@@ -176,41 +177,65 @@ class _SharedAlarmsListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<SharedAlarmsBloc>(
-      builder: (BuildContext context, SharedAlarmsBloc fbBloc, _) => Container(
-        margin: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
-        decoration: BoxDecoration(
+      builder: (BuildContext context, SharedAlarmsBloc fbBloc, _) {
+        final Gradient? gradient = alarmChannelOverview.isActivated &&
+            alarmChannelOverview.currentAlarm != null
+            ? Gradients.getGradient(alarmChannelOverview.currentAlarm!.hour,
+            alarmChannelOverview.currentAlarm!.minute) : null;
+        Color? shadowColor = gradient?.colors[0].withValue(.5);
+
+        return Container(
+          margin: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(_cardRadius)),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 8,
-                  offset: Offset(2, 2))
-            ]),
-        child: Material(
-          color: Colors.grey[800],
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_cardRadius)),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(_cardRadius),
-            splashFactory: InkRipple.splashFactory,
-            onTap: () =>
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => AlarmChannelPage(alarmChannelOverview))),
-            child: Container(
-              padding: EdgeInsets.only(left: 24, right: 24, top: 32, bottom: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(alarmChannelOverview.channelName ?? "<null>",
-                    style: Theme.of(context).textTheme.headline4),
-                  if (alarmChannelOverview.currentAlarm != null)
-                    Text(alarmChannelOverview.currentAlarm!.format(context),
-                    style: Theme.of(context).textTheme.headline6),
-                ],
+                  color: shadowColor?.withOpacity(0.5) ?? Colors.black.withOpacity(0.2),
+                  blurRadius: 24,
+                  offset: Offset(2, 2)
+              ),
+            ],
+            gradient: gradient,
+            color: Theme
+                .of(context)
+                .colorScheme
+                .background,
+          ),
+          child: Material(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_cardRadius)),
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(_cardRadius),
+              splashFactory: InkRipple.splashFactory,
+              onTap: () =>
+                  Navigator.push(context, MaterialPageRoute(
+                      builder: (context) =>
+                          AlarmChannelPage(alarmChannelOverview))),
+              child: Container(
+                padding: EdgeInsets.only(
+                    left: 24, right: 24, top: 32, bottom: 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(alarmChannelOverview.channelName ?? "<null>",
+                        style: Theme
+                            .of(context)
+                            .textTheme
+                            .headline4),
+                    if (alarmChannelOverview.currentAlarm != null)
+                      Text(alarmChannelOverview.currentAlarm!.format(context),
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .headline6),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+    }
     );
   }
 }
