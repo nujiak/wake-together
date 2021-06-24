@@ -126,11 +126,11 @@ class SharedAlarmsPage extends StatelessWidget {
                 return UsernameForm();
               }
 
-              return StreamBuilder<List<AlarmChannelOverview>>(
+              return StreamBuilder<List<AlarmChannel>>(
                 stream: fbBloc.subscribedChannels,
                 builder:
                     (BuildContext context,
-                    AsyncSnapshot<List<AlarmChannelOverview>> subscribedChannelsSnap) {
+                    AsyncSnapshot<List<AlarmChannel>> subscribedChannelsSnap) {
                   return Scaffold(
                     appBar: AppBar(
                       backgroundColor: Theme.of(context).colorScheme.background,
@@ -169,19 +169,19 @@ class SharedAlarmsPage extends StatelessWidget {
 }
 
 class _SharedAlarmsListItem extends StatelessWidget {
-  const _SharedAlarmsListItem(this.alarmChannelOverview);
+  const _SharedAlarmsListItem(this.alarmChannel);
 
-  final AlarmChannelOverview alarmChannelOverview;
+  final AlarmChannel alarmChannel;
   static const double _cardRadius = 32;
 
   @override
   Widget build(BuildContext context) {
     return Consumer<SharedAlarmsBloc>(
       builder: (BuildContext context, SharedAlarmsBloc fbBloc, _) {
-        final Gradient? gradient = alarmChannelOverview.isActivated &&
-            alarmChannelOverview.currentAlarm != null
-            ? Gradients.getGradient(alarmChannelOverview.currentAlarm!.hour,
-            alarmChannelOverview.currentAlarm!.minute) : null;
+        final Gradient? gradient = alarmChannel.isActivated &&
+            alarmChannel.currentAlarm != null
+            ? Gradients.getGradient(alarmChannel.currentAlarm!.hour,
+            alarmChannel.currentAlarm!.minute) : null;
         Color? shadowColor = gradient?.colors[0].withValue(.5);
 
         return Container(
@@ -211,20 +211,20 @@ class _SharedAlarmsListItem extends StatelessWidget {
               onTap: () =>
                   Navigator.push(context, MaterialPageRoute(
                       builder: (context) =>
-                          AlarmChannelPage(alarmChannelOverview))),
+                          AlarmChannelPage(alarmChannel))),
               child: Container(
                 padding: EdgeInsets.only(
                     left: 24, right: 24, top: 32, bottom: 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(alarmChannelOverview.channelName ?? "<null>",
+                    Text(alarmChannel.channelName ?? "<null>",
                         style: Theme
                             .of(context)
                             .textTheme
                             .headline4),
-                    if (alarmChannelOverview.currentAlarm != null)
-                      Text(alarmChannelOverview.currentAlarm!.format(context),
+                    if (alarmChannel.currentAlarm != null)
+                      Text(alarmChannel.currentAlarm!.format(context),
                           style: Theme
                               .of(context)
                               .textTheme

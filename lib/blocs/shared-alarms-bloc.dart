@@ -89,16 +89,16 @@ class SharedAlarmsBloc {
   }
 
   /// Stream for channels to listen for realtime changes.
-  Stream<List<AlarmChannelOverview>>? _subscribedChannels;
+  Stream<List<AlarmChannel>>? _subscribedChannels;
 
   /// Getter for _subscribedChannels with lazy evaluation.
-  Stream<List<AlarmChannelOverview>> get subscribedChannels {
+  Stream<List<AlarmChannel>> get subscribedChannels {
     if (_subscribedChannels == null) {
       _subscribedChannels = FirebaseFirestore.instance
           .collection(subscribedChannelsPath)
           .snapshots()
           .map((QuerySnapshot snapshot) =>
-          snapshot.docs.map(_alarmChannelOverviewFrom).toList())
+          snapshot.docs.map(_alarmChannelFrom).toList())
           .asBroadcastStream();
 
       _subscribedChannels!.listen(registerSharedAlarms);
@@ -107,66 +107,15 @@ class SharedAlarmsBloc {
   }
 
   /// Maps a QueryDocumentSnapshot from /user/.../subscribed_channels/ to
-  /// an AlarmChannelOverview.
-  AlarmChannelOverview _alarmChannelOverviewFrom(
+  /// an AlarmChannel.
+  AlarmChannel _alarmChannelFrom(
       QueryDocumentSnapshot docSnap) {
-    return AlarmChannelOverview(
-        docSnap.data()[CHANNEL_NAME_FIELD],
-        _getAlarmChannel(docSnap.id),
-        docSnap.id,
-        docSnap.data()[CURRENT_ALARM_FIELD],
-        docSnap.data()[HAS_VOTED_FIELD] ?? false);
-  }
-
-  /// Returns a Future that provides the AlarmChannel representing the alarm
-  /// channel with channelId in /channels/.
-  Future<Stream<AlarmChannel>> _getAlarmChannel(String channelId) async {
-    return FirebaseFirestore.instance
-        .doc("/$CHANNELS_COLLECTION/$channelId")
-        .snapshots()
-        .map((DocumentSnapshot docSnap) => AlarmChannel(
-            channelId,
-            docSnap.data()?[CHANNEL_NAME_FIELD],
-            docSnap.data()?[OWNER_ID_FIELD],
-            _getAlarmChannelSubscribers(channelId),
-            _getAlarmChannelOptions(channelId),
-            _getAlarmChannelCurrentVote(channelId))
+    return AlarmChannel(
+        channelName: docSnap.data()[CHANNEL_NAME_FIELD],
+        channelId: docSnap.id,
+        currentAlarmTimestamp: docSnap.data()[CURRENT_ALARM_FIELD],
+        isActivated: docSnap.data()[HAS_VOTED_FIELD] ?? false,
     );
-  }
-
-  /// Returns a stream providing the current user vote for the alarm
-  /// channel with channelId.
-  Stream<Timestamp?> _getAlarmChannelCurrentVote(String channelId) {
-    return FirebaseFirestore.instance
-        .doc("/$CHANNELS_COLLECTION/$channelId/$VOTES_SUB/$userId")
-        .snapshots()
-        .map((DocumentSnapshot docSnap) => docSnap.data()?[TIME_FIELD]);
-  }
-
-  /// Returns a stream providing the alarm options for the alarm channel
-  /// with channelId.
-  Stream<List<AlarmOption>> _getAlarmChannelOptions(String channelId) {
-    return FirebaseFirestore.instance
-        .collection("/$CHANNELS_COLLECTION/$channelId/$OPTIONS_SUB")
-        .orderBy(TIME_FIELD)
-        .snapshots()
-        .map((QuerySnapshot snapshot) => snapshot.docs)
-        .map((List<QueryDocumentSnapshot> docs) {
-      return docs.map((QueryDocumentSnapshot docSnap) =>
-          AlarmOption(docSnap.data()[TIME_FIELD], docSnap.data()[VOTES_FIELD] ?? 0));
-    })
-        .map((Iterable<AlarmOption> alarmOptions) => alarmOptions.toList());
-  }
-
-  Stream<List<String?>> _getAlarmChannelSubscribers(String channelId) {
-    return FirebaseFirestore.instance
-        .collection("/$CHANNELS_COLLECTION/$channelId/$SUBSCRIBERS_SUB")
-        .snapshots()
-        .map((QuerySnapshot snapshot) => snapshot.docs)
-        .map((List<QueryDocumentSnapshot> docSnapshots) {
-      return docSnapshots.map((QueryDocumentSnapshot docSnapshot) =>
-      docSnapshot.data()[USERNAME_FIELD] as String?).toList();
-    });
   }
 
   /// Creates a new alarm channel with a name.
@@ -220,8 +169,8 @@ class SharedAlarmsBloc {
     }
   }
 
-  void registerSharedAlarms(List<AlarmChannelOverview> channels) async {
-    for (AlarmChannelOverview channel in channels) {
+  void registerSharedAlarms(List<AlarmChannel> channels) async {
+    for (AlarmChannel channel in channels) {
       if (channel.isActivated) {
         registerAlarmChannel(context, channel);
       }

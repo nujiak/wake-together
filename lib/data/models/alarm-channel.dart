@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 
 /// Stores the information to be displayed in each list item in the Shared
 /// Alarms page.
-class AlarmChannelOverview {
-  AlarmChannelOverview(this.channelName, this.alarmChannel, this.channelId,
-      this.currentAlarmTimestamp, this.isActivated) {
+class AlarmChannel {
+  AlarmChannel({
+    required this.channelName,
+    required this.channelId,
+    required this.currentAlarmTimestamp,
+    this.isActivated = false}) {
     this.currentAlarm = currentAlarmTimestamp == null
         ? null
         : TimeOfDay.fromDateTime(currentAlarmTimestamp!.toDate());
@@ -13,9 +16,6 @@ class AlarmChannelOverview {
 
   /// Name of the alarm channel.
   final String? channelName;
-
-  /// Future containing a Stream of the full AlarmChannel
-  final Future<Stream<AlarmChannel>> alarmChannel;
 
   /// Unique id for the alarm channel.
   final String channelId;
@@ -30,31 +30,7 @@ class AlarmChannelOverview {
   final bool isActivated;
 }
 
-/// Stores the detailed information of each alarm channel.
-class AlarmChannel {
-  AlarmChannel(this.channelId, this.channelName, this.ownerId, this.subscribers,
-      this.alarmOptions, this.currentVote);
-
-  /// Name of the alarm channel.
-  final String? channelName;
-
-  /// Unique id for the alarm channel.
-  final String channelId;
-
-  /// User id for the owner (creator) of this alarm channel.
-  final String? ownerId;
-
-  /// List of subscriber name of this alarm channel.
-  final Stream<List<String?>> subscribers;
-
-  /// List of alarm options for voting.
-  final Stream<List<AlarmOption>> alarmOptions;
-
-  /// The current user's alarm option vote.
-  final Stream<Timestamp?> currentVote;
-}
-
-/// A single voting option in AlarmChannel.
+/// A single voting option in an alarm channel.
 class AlarmOption {
   AlarmOption(this.timestamp, this.votes) {
     dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp.millisecondsSinceEpoch);
