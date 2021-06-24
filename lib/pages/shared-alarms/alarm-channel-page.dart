@@ -12,16 +12,16 @@ import '../../widgets.dart';
 /// Radius of rounded edges of cards.
 const double _cardRadius = 16;
 
-/// Displays the details of an AlarmChannel given its AlarmChannelOverview.
+/// Displays the details of an alarm channel.
 class AlarmChannelPage extends StatelessWidget {
-  const AlarmChannelPage(this._alarmChannelOverview);
+  const AlarmChannelPage(this.alarmChannel);
 
-  final AlarmChannelOverview _alarmChannelOverview;
+  final AlarmChannel alarmChannel;
 
   @override
   Widget build(BuildContext context) {
     return Provider<AlarmChannelBloc>(
-      create: (BuildContext context) => AlarmChannelBloc(_alarmChannelOverview),
+      create: (BuildContext context) => AlarmChannelBloc(alarmChannel),
       child: Consumer<AlarmChannelBloc>(
         builder: (BuildContext context, AlarmChannelBloc bloc, _) => Scaffold(
           appBar: AppBar(

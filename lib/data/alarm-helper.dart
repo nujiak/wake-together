@@ -61,8 +61,8 @@ void _registerAlarm(BuildContext context, Alarm alarm) async {
   }
 }
 
-/// Registers an Alarm Channel alarm through its overview.
-void registerAlarmChannel(BuildContext context, AlarmChannelOverview channel) {
+/// Registers an alarm channel alarm.
+void registerAlarmChannel(BuildContext context, AlarmChannel channel) {
   if (!channel.isActivated) {
     return;
   }
@@ -75,7 +75,7 @@ void registerAlarmChannel(BuildContext context, AlarmChannelOverview channel) {
     return;
   }
 
-  // Construct an Alarm object using data from the overview.
+  // Construct an Alarm object using data from the AlarmChannel.
   Alarm alarm = Alarm(
       id: 0,
       description: channel.channelName ?? "",

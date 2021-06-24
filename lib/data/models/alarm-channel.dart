@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 
 /// Stores the information to be displayed in each list item in the Shared
 /// Alarms page.
-class AlarmChannelOverview {
-  AlarmChannelOverview({
+class AlarmChannel {
+  AlarmChannel({
     required this.channelName,
     required this.channelId,
     required this.currentAlarmTimestamp,

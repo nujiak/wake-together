@@ -89,16 +89,16 @@ class SharedAlarmsBloc {
   }
 
   /// Stream for channels to listen for realtime changes.
-  Stream<List<AlarmChannelOverview>>? _subscribedChannels;
+  Stream<List<AlarmChannel>>? _subscribedChannels;
 
   /// Getter for _subscribedChannels with lazy evaluation.
-  Stream<List<AlarmChannelOverview>> get subscribedChannels {
+  Stream<List<AlarmChannel>> get subscribedChannels {
     if (_subscribedChannels == null) {
       _subscribedChannels = FirebaseFirestore.instance
           .collection(subscribedChannelsPath)
           .snapshots()
           .map((QuerySnapshot snapshot) =>
-          snapshot.docs.map(_alarmChannelOverviewFrom).toList())
+          snapshot.docs.map(_alarmChannelFrom).toList())
           .asBroadcastStream();
 
       _subscribedChannels!.listen(registerSharedAlarms);
@@ -107,10 +107,10 @@ class SharedAlarmsBloc {
   }
 
   /// Maps a QueryDocumentSnapshot from /user/.../subscribed_channels/ to
-  /// an AlarmChannelOverview.
-  AlarmChannelOverview _alarmChannelOverviewFrom(
+  /// an AlarmChannel.
+  AlarmChannel _alarmChannelFrom(
       QueryDocumentSnapshot docSnap) {
-    return AlarmChannelOverview(
+    return AlarmChannel(
         channelName: docSnap.data()[CHANNEL_NAME_FIELD],
         channelId: docSnap.id,
         currentAlarmTimestamp: docSnap.data()[CURRENT_ALARM_FIELD],
@@ -169,8 +169,8 @@ class SharedAlarmsBloc {
     }
   }
 
-  void registerSharedAlarms(List<AlarmChannelOverview> channels) async {
-    for (AlarmChannelOverview channel in channels) {
+  void registerSharedAlarms(List<AlarmChannel> channels) async {
+    for (AlarmChannel channel in channels) {
       if (channel.isActivated) {
         registerAlarmChannel(context, channel);
       }

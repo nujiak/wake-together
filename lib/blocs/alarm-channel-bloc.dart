@@ -10,13 +10,13 @@ import 'package:wake_together/data/models/alarm-channel.dart';
 
 class AlarmChannelBloc {
 
-  AlarmChannelBloc(this.alarmChannelOverview) {
+  AlarmChannelBloc(this.alarmChannel) {
     init();
-    channelId = this.alarmChannelOverview.channelId;
+    channelId = this.alarmChannel.channelId;
   }
 
-  /// AlarmChannelOverview tied to this bloc.
-  final AlarmChannelOverview alarmChannelOverview;
+  /// AlarmChannel tied to this bloc.
+  final AlarmChannel alarmChannel;
 
   /// Channel ID of the alarm tied to this bloc.
   late final String channelId;
@@ -131,7 +131,7 @@ class AlarmChannelBloc {
         .set({
       CHANNEL_ID_FIELD: channelId,
       CHANNEL_NAME_FIELD: await _channelName.last,
-      CURRENT_ALARM_FIELD: alarmChannelOverview.currentAlarm,
+      CURRENT_ALARM_FIELD: alarmChannel.currentAlarm,
     });
 
     return true;
@@ -251,7 +251,7 @@ class AlarmChannelBloc {
   /// Opts the user out of the current vote.
   void optOut() async {
     await FirebaseFirestore.instance
-        .doc(("/$CHANNELS_COLLECTION/${alarmChannelOverview.channelId}/$VOTES_SUB/$userId"))
+        .doc(("/$CHANNELS_COLLECTION/${alarmChannel.channelId}/$VOTES_SUB/$userId"))
         .delete();
 
     // Register opt out under the user
