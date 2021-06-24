@@ -30,7 +30,7 @@ class _AuthenticationPageState extends State<AuthenticationPage>
     super.build(context);
 
     return Provider<SharedAlarmsBloc>(
-      create: (BuildContext context) => SharedAlarmsBloc(),
+      create: (BuildContext context) => SharedAlarmsBloc(context),
       dispose: (BuildContext context, SharedAlarmsBloc fbBloc) => fbBloc.dispose(),
       child: Consumer<SharedAlarmsBloc>(
         builder: (BuildContext context, SharedAlarmsBloc fbBloc, _) =>

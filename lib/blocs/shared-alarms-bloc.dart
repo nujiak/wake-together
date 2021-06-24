@@ -1,16 +1,23 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:wake_together/constants.dart';
+import 'package:wake_together/data/alarm-helper.dart';
 import 'package:wake_together/data/firebase-helper.dart';
 import 'package:wake_together/data/models/alarm-channel.dart';
 
 /// Bloc handling all Firebase Authentication processes.
 class SharedAlarmsBloc {
-  SharedAlarmsBloc() {
+  SharedAlarmsBloc(this.context) {
     init();
   }
+
+  /// Context used for registering alarms.
+  BuildContext context;
 
   /// Behaviour Subject for the app's login state.
   BehaviorSubject<LoginState> _loginStateSubject = BehaviorSubject();
@@ -91,7 +98,10 @@ class SharedAlarmsBloc {
           .collection(subscribedChannelsPath)
           .snapshots()
           .map((QuerySnapshot snapshot) =>
-          snapshot.docs.map(_alarmChannelOverviewFrom).toList());
+          snapshot.docs.map(_alarmChannelOverviewFrom).toList())
+          .asBroadcastStream();
+
+      _subscribedChannels!.listen(registerSharedAlarms);
     }
     return _subscribedChannels!;
   }
@@ -207,6 +217,14 @@ class SharedAlarmsBloc {
           .doc("/users/$userId")
           .set({USERNAME_FIELD: username});
       return true;
+    }
+  }
+
+  void registerSharedAlarms(List<AlarmChannelOverview> channels) async {
+    for (AlarmChannelOverview channel in channels) {
+      if (channel.isActivated) {
+        registerAlarmChannel(context, channel);
+      }
     }
   }
 }
