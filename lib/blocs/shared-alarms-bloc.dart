@@ -128,18 +128,8 @@ class SharedAlarmsBloc {
             channelId,
             docSnap.data()?[CHANNEL_NAME_FIELD],
             docSnap.data()?[OWNER_ID_FIELD],
-            _getAlarmChannelOptions(channelId),
-            _getAlarmChannelCurrentVote(channelId))
+            _getAlarmChannelOptions(channelId))
     );
-  }
-
-  /// Returns a stream providing the current user vote for the alarm
-  /// channel with channelId.
-  Stream<Timestamp?> _getAlarmChannelCurrentVote(String channelId) {
-    return FirebaseFirestore.instance
-        .doc("/$CHANNELS_COLLECTION/$channelId/$VOTES_SUB/$userId")
-        .snapshots()
-        .map((DocumentSnapshot docSnap) => docSnap.data()?[TIME_FIELD]);
   }
 
   /// Returns a stream providing the alarm options for the alarm channel

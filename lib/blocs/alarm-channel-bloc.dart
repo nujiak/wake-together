@@ -43,7 +43,19 @@ class AlarmChannelBloc {
     return _subscribers!;
   }
 
+  /// Stream of the current user's vote for this alarm channel.
+  Stream<Timestamp?>? _currentUserVote;
 
+  /// Lazy getter for the stream of user's current vote.
+  Stream<Timestamp?> get currentUserVote {
+    if (_currentUserVote == null) {
+      _currentUserVote = FirebaseFirestore.instance
+          .doc("/$CHANNELS_COLLECTION/$channelId/$VOTES_SUB/$userId")
+          .snapshots()
+          .map((DocumentSnapshot docSnap) => docSnap.data()?[TIME_FIELD]);
+    }
+    return _currentUserVote!;
+  }
 
 
   /// Adds a user with targetUsername to an alarm channel.

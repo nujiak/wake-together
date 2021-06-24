@@ -179,7 +179,7 @@ class _AlarmBlock extends StatelessWidget {
                 builder: (BuildContext context,
                     AsyncSnapshot<List<AlarmOption>> snapshot) {
                   return StreamBuilder(
-                    stream: _alarmChannel.currentVote,
+                    stream: bloc.currentUserVote,
                     builder: (BuildContext context,
                         AsyncSnapshot<Timestamp?> voteSnapshot) {
                       Timestamp? selection = voteSnapshot.data;
