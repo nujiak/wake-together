@@ -11,11 +11,22 @@ class AlarmChannelOverview {
         : TimeOfDay.fromDateTime(currentAlarmTimestamp!.toDate());
   }
 
+  /// Name of the alarm channel.
   final String? channelName;
+
+  /// Future containing a Stream of the full AlarmChannel
   final Future<Stream<AlarmChannel>> alarmChannel;
+
+  /// Unique id for the alarm channel.
   final String channelId;
+
+  /// Timestamp for the current highest voted alarm time.
   final Timestamp? currentAlarmTimestamp;
+
+  /// TimeOfDay for the current highest voted alarm time.
   late final TimeOfDay? currentAlarm;
+
+  /// Whether the user has voted and the alarm is activated for the user.
   final bool isActivated;
 }
 
@@ -24,14 +35,26 @@ class AlarmChannel {
   AlarmChannel(this.channelId, this.channelName, this.ownerId, this.subscribers,
       this.alarmOptions, this.currentVote);
 
-  final String channelId;
+  /// Name of the alarm channel.
   final String? channelName;
+
+  /// Unique id for the alarm channel.
+  final String channelId;
+
+  /// User id for the owner (creator) of this alarm channel.
   final String? ownerId;
+
+  /// List of subscriber name of this alarm channel.
   final Stream<List<String?>> subscribers;
+
+  /// List of alarm options for voting.
   final Stream<List<AlarmOption>> alarmOptions;
+
+  /// The current user's alarm option vote.
   final Stream<Timestamp?> currentVote;
 }
 
+/// A single voting option in AlarmChannel.
 class AlarmOption {
   AlarmOption(this.timestamp, this.votes) {
     dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp.millisecondsSinceEpoch);

@@ -10,6 +10,7 @@ Color toColor(String text, {double saturation = .7, double value = 1}) {
       .toColor();
 }
 
+/// Contains gradients that are themed according to time of day.
 class Gradients {
 
   /// Starting color for the midnight gradient.
