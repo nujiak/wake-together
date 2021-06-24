@@ -3,6 +3,7 @@ import "dart:collection";
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:wake_together/data/alarm-helper.dart';
 import 'package:wake_together/data/firebase-helper.dart';
 import 'package:wake_together/data/models/alarm-channel.dart';
@@ -23,6 +24,28 @@ class AlarmChannelBloc {
   void init() async {
     // Should have been initialized by SharedAlarmsBloc.
     await Firebase.initializeApp();
+
+    _channelInfo = FirebaseFirestore.instance
+        .doc("/$CHANNELS_COLLECTION/$channelId/")
+        .snapshots()
+        .map((DocumentSnapshot snapshot) => snapshot.data());
+
+    _channelInfo.listen((Map<String, dynamic>? data) {
+      if (data == null) {
+        return;
+      }
+      if (data[CHANNEL_NAME_FIELD] != null) {
+        _channelName.add(data[CHANNEL_NAME_FIELD]);
+      }
+      if (data[OWNER_ID_FIELD] != null) {
+        _ownerId.add(data[OWNER_ID_FIELD]);
+      }
+    });
+  }
+
+  void dispose() {
+    _ownerId.close();
+    _channelName.close();
   }
 
   /// Stream of subscribers for this alarm channel.
@@ -77,8 +100,17 @@ class AlarmChannelBloc {
     return _alarmOptions!;
   }
 
+  late Stream<Map<String, dynamic>?> _channelInfo;
+
+  BehaviorSubject<String> _channelName = BehaviorSubject();
+  Stream<String> get channelName => _channelName.stream;
+
+  BehaviorSubject<String> _ownerId = BehaviorSubject();
+  Stream<String> get ownerId => _ownerId.stream;
+
+
   /// Adds a user with targetUsername to an alarm channel.
-  Future<bool> addUserToChannel(String targetUsername, AlarmChannel alarmChannel) async {
+  Future<bool> addUserToChannel(String targetUsername) async {
 
     targetUsername = targetUsername.trim().toLowerCase();
 
@@ -95,10 +127,10 @@ class AlarmChannelBloc {
 
     // Add channel to user's subscribed_channels
     await FirebaseFirestore.instance
-        .doc("/$USERS_COLLECTION/$targetUserId/$SUBSCRIBED_CHANNELS_SUB/${alarmChannel.channelId}")
+        .doc("/$USERS_COLLECTION/$targetUserId/$SUBSCRIBED_CHANNELS_SUB/$channelId")
         .set({
       CHANNEL_ID_FIELD: channelId,
-      CHANNEL_NAME_FIELD: alarmChannel.channelName,
+      CHANNEL_NAME_FIELD: await _channelName.last,
       CURRENT_ALARM_FIELD: alarmChannelOverview.currentAlarm,
     });
 
@@ -106,7 +138,7 @@ class AlarmChannelBloc {
   }
 
   /// Adds a voting option to the alarm.
-  Future<bool> addNewVoteOption(Future<TimeOfDay?> timeFuture, AlarmChannel alarmChannel) async {
+  Future<bool> addNewVoteOption(Future<TimeOfDay?> timeFuture) async {
 
     final TimeOfDay? time = await timeFuture;
     if (time == null) {
@@ -118,7 +150,7 @@ class AlarmChannelBloc {
     Timestamp timeStamp = Timestamp.fromDate(dateTime);
 
     CollectionReference optionsSubCollection = FirebaseFirestore.instance
-        .collection("/$CHANNELS_COLLECTION/${alarmChannel.channelId}/$OPTIONS_SUB");
+        .collection("/$CHANNELS_COLLECTION/$channelId/$OPTIONS_SUB");
 
     // Check if the vote option already exists
     bool alreadyExists = await optionsSubCollection

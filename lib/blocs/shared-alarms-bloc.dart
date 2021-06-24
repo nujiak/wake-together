@@ -111,23 +111,10 @@ class SharedAlarmsBloc {
   AlarmChannelOverview _alarmChannelOverviewFrom(
       QueryDocumentSnapshot docSnap) {
     return AlarmChannelOverview(
-        docSnap.data()[CHANNEL_NAME_FIELD],
-        _getAlarmChannel(docSnap.id),
-        docSnap.id,
-        docSnap.data()[CURRENT_ALARM_FIELD],
-        docSnap.data()[HAS_VOTED_FIELD] ?? false);
-  }
-
-  /// Returns a Future that provides the AlarmChannel representing the alarm
-  /// channel with channelId in /channels/.
-  Future<Stream<AlarmChannel>> _getAlarmChannel(String channelId) async {
-    return FirebaseFirestore.instance
-        .doc("/$CHANNELS_COLLECTION/$channelId")
-        .snapshots()
-        .map((DocumentSnapshot docSnap) => AlarmChannel(
-            channelId,
-            docSnap.data()?[CHANNEL_NAME_FIELD],
-            docSnap.data()?[OWNER_ID_FIELD])
+        channelName: docSnap.data()[CHANNEL_NAME_FIELD],
+        channelId: docSnap.id,
+        currentAlarmTimestamp: docSnap.data()[CURRENT_ALARM_FIELD],
+        isActivated: docSnap.data()[HAS_VOTED_FIELD] ?? false,
     );
   }
 
