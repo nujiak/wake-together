@@ -175,7 +175,7 @@ class _AlarmBlock extends StatelessWidget {
         builder: (BuildContext context, AlarmChannelBloc bloc, _) => Container(
               alignment: Alignment.centerLeft,
               child: StreamBuilder(
-                stream: _alarmChannel.alarmOptions,
+                stream: bloc.alarmOptions,
                 builder: (BuildContext context,
                     AsyncSnapshot<List<AlarmOption>> snapshot) {
                   return StreamBuilder(

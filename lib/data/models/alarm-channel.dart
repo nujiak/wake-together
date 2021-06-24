@@ -32,8 +32,7 @@ class AlarmChannelOverview {
 
 /// Stores the detailed information of each alarm channel.
 class AlarmChannel {
-  AlarmChannel(this.channelId, this.channelName, this.ownerId,
-      this.alarmOptions);
+  AlarmChannel(this.channelId, this.channelName, this.ownerId);
 
   /// Name of the alarm channel.
   final String? channelName;
@@ -43,9 +42,6 @@ class AlarmChannel {
 
   /// User id for the owner (creator) of this alarm channel.
   final String? ownerId;
-
-  /// List of alarm options for voting.
-  final Stream<List<AlarmOption>> alarmOptions;
 }
 
 /// A single voting option in AlarmChannel.

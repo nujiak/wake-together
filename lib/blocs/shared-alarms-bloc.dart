@@ -127,24 +127,8 @@ class SharedAlarmsBloc {
         .map((DocumentSnapshot docSnap) => AlarmChannel(
             channelId,
             docSnap.data()?[CHANNEL_NAME_FIELD],
-            docSnap.data()?[OWNER_ID_FIELD],
-            _getAlarmChannelOptions(channelId))
+            docSnap.data()?[OWNER_ID_FIELD])
     );
-  }
-
-  /// Returns a stream providing the alarm options for the alarm channel
-  /// with channelId.
-  Stream<List<AlarmOption>> _getAlarmChannelOptions(String channelId) {
-    return FirebaseFirestore.instance
-        .collection("/$CHANNELS_COLLECTION/$channelId/$OPTIONS_SUB")
-        .orderBy(TIME_FIELD)
-        .snapshots()
-        .map((QuerySnapshot snapshot) => snapshot.docs)
-        .map((List<QueryDocumentSnapshot> docs) {
-      return docs.map((QueryDocumentSnapshot docSnap) =>
-          AlarmOption(docSnap.data()[TIME_FIELD], docSnap.data()[VOTES_FIELD] ?? 0));
-    })
-        .map((Iterable<AlarmOption> alarmOptions) => alarmOptions.toList());
   }
 
   /// Creates a new alarm channel with a name.

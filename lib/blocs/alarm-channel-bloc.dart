@@ -57,6 +57,25 @@ class AlarmChannelBloc {
     return _currentUserVote!;
   }
 
+  /// Stream of the alarm options in this alarm channel.
+  Stream<List<AlarmOption>>? _alarmOptions;
+
+  /// Lazy getter for the stream of alarm options.
+  Stream<List<AlarmOption>> get alarmOptions {
+    if (_alarmOptions == null) {
+      _alarmOptions = FirebaseFirestore.instance
+          .collection("/$CHANNELS_COLLECTION/$channelId/$OPTIONS_SUB")
+          .orderBy(TIME_FIELD)
+          .snapshots()
+          .map((QuerySnapshot snapshot) => snapshot.docs)
+          .map((List<QueryDocumentSnapshot> docs) {
+        return docs.map((QueryDocumentSnapshot docSnap) =>
+            AlarmOption(docSnap.data()[TIME_FIELD], docSnap.data()[VOTES_FIELD] ?? 0));
+      })
+          .map((Iterable<AlarmOption> alarmOptions) => alarmOptions.toList());
+    }
+    return _alarmOptions!;
+  }
 
   /// Adds a user with targetUsername to an alarm channel.
   Future<bool> addUserToChannel(String targetUsername, AlarmChannel alarmChannel) async {
