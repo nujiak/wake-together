@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:wake_together/data/models/alarm-channel.dart';
 
 import '../constants.dart';
 import 'models/alarm.dart';
@@ -17,7 +18,7 @@ void registerAllAlarms(BuildContext context, List<Alarm> alarms) async {
   }
 }
 
-/// Registers and alarm with Flutter Local Notifications
+/// Registers an alarm with Flutter Local Notifications
 void _registerAlarm(BuildContext context, Alarm alarm) async {
   if (alarm.id == null) {
     return;
@@ -39,7 +40,7 @@ void _registerAlarm(BuildContext context, Alarm alarm) async {
         alarm.id!,
         alarm.time.format(context),
         alarm.description,
-        await _findNextAlarmDateTime(alarm.time), platformChannelSpecifics,
+        findNextAlarmDateTime(alarm.time), platformChannelSpecifics,
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         payload: alarm.toJsonEncoding(),
@@ -50,7 +51,7 @@ void _registerAlarm(BuildContext context, Alarm alarm) async {
       _getAlarmId(alarm.id!, Days.DATETIME_WEEKDAY[day]),
           alarm.time.format(context),
           alarm.description,
-          await _findNextAlarmDateTime(alarm.time), platformChannelSpecifics,
+          findNextAlarmDateTime(alarm.time), platformChannelSpecifics,
           androidAllowWhileIdle: true,
           matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
           uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
@@ -60,8 +61,53 @@ void _registerAlarm(BuildContext context, Alarm alarm) async {
   }
 }
 
+/// Registers an Alarm Channel alarm through its overview.
+void registerAlarmChannel(BuildContext context, AlarmChannelOverview channel) {
+  if (!channel.isActivated) {
+    return;
+  }
+  if (channel.currentAlarmTimestamp == null) {
+    return;
+  }
+  DateTime alarmTime = channel.currentAlarmTimestamp!.toDate();
+
+  if (alarmTime.isBefore(DateTime.now())) {
+    return;
+  }
+
+  // Construct an Alarm object using data from the overview.
+  Alarm alarm = Alarm(
+      id: 0,
+      description: channel.channelName ?? "",
+      time: channel.currentAlarm!,
+      days: {});
+
+  const AndroidNotificationDetails androidPlatformChannelSpecifics =
+  AndroidNotificationDetails(
+    "WakeTogether",
+    "Alarm",
+    "WakeTogether Alarm",
+    priority: Priority.high,
+    importance: Importance.max,
+    showWhen: true,
+    fullScreenIntent: true,
+  );
+  const NotificationDetails platformChannelSpecifics =
+  NotificationDetails(android: androidPlatformChannelSpecifics);
+  _flutterLocalNotificationsPlugin.zonedSchedule(
+    channel.channelId.hashCode,
+    channel.currentAlarm!.format(context),
+    channel.channelName,
+    tz.TZDateTime.from(alarmTime, tz.local),
+    platformChannelSpecifics,
+    androidAllowWhileIdle: true,
+    uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+    payload: alarm.toJsonEncoding(),
+  );
+}
+
 /// Calculates the DateTime for the next instance an alarm should ring.
-Future<tz.TZDateTime> _findNextAlarmDateTime(TimeOfDay time, [Days? day]) async {
+tz.TZDateTime findNextAlarmDateTime(TimeOfDay time, [Days? day]) {
   assert(_initialized);
 
   DateTime now = tz.TZDateTime.now(tz.local);
