@@ -78,7 +78,7 @@ class _SubscribersBlock extends StatelessWidget {
           margin: EdgeInsets.all(8),
           padding: EdgeInsets.all(8),
           child: StreamBuilder(
-              stream: _alarmChannel.subscribers,
+              stream: bloc.subscribers,
               builder: (BuildContext context,
                   AsyncSnapshot<List<String?>> snapshot) {
                 final List<String?>? users = snapshot.data;

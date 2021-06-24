@@ -25,6 +25,27 @@ class AlarmChannelBloc {
     await Firebase.initializeApp();
   }
 
+  /// Stream of subscribers for this alarm channel.
+  Stream<List<String?>>? _subscribers;
+
+  /// Lazy getter for the stream of subscribers.
+  Stream<List<String?>> get subscribers {
+    if (_subscribers == null) {
+      _subscribers = FirebaseFirestore.instance
+          .collection("/$CHANNELS_COLLECTION/$channelId/$SUBSCRIBERS_SUB")
+          .snapshots()
+          .map((QuerySnapshot snapshot) => snapshot.docs)
+          .map((List<QueryDocumentSnapshot> docSnapshots) {
+        return docSnapshots.map((QueryDocumentSnapshot docSnapshot) =>
+        docSnapshot.data()[USERNAME_FIELD] as String?).toList();
+      });
+    }
+    return _subscribers!;
+  }
+
+
+
+
   /// Adds a user with targetUsername to an alarm channel.
   Future<bool> addUserToChannel(String targetUsername, AlarmChannel alarmChannel) async {
 
