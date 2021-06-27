@@ -74,6 +74,7 @@ class _SubscribersBlock extends StatelessWidget {
                         : "${users.length} Subscribers";
 
                 return StreamBuilder(
+                  stream: bloc.ownerId,
                   builder: (BuildContext context, AsyncSnapshot<String> ownerId) {
 
                     final bool isOwner = ownerId.data == userId;

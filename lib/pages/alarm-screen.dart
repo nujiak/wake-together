@@ -29,12 +29,31 @@ class _AlarmScreenState extends State<AlarmScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        margin: EdgeInsets.all(24),
         alignment: Alignment.center,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(alarm.time.format(context)),
-            Text(alarm.description),
+            Material(
+              color: Theme.of(context).backgroundColor,
+              shape: CircleBorder(),
+              child: Container(
+
+                child: Text(alarm.time.format(context),
+                  style: TextStyle(
+                    fontSize: 64,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            Text(alarm.description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
