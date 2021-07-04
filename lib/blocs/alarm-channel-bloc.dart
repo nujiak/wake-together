@@ -35,9 +35,7 @@ class AlarmChannelBloc {
         return;
       }
       if (data[CHANNEL_NAME_FIELD] != null) {
-        print("new channel name: ${data[CHANNEL_NAME_FIELD]}");
         _channelName.add(data[CHANNEL_NAME_FIELD]);
-        _currentChannelName = data[CHANNEL_NAME_FIELD];
       }
       if (data[OWNER_ID_FIELD] != null) {
         _ownerId.add(data[OWNER_ID_FIELD]);
@@ -104,9 +102,6 @@ class AlarmChannelBloc {
 
   late Stream<Map<String, dynamic>?> _channelInfo;
 
-  /// Last observed channel name.
-  String? _currentChannelName;
-
   BehaviorSubject<String> _channelName = BehaviorSubject();
   Stream<String> get channelName => _channelName.stream;
 
@@ -129,15 +124,6 @@ class AlarmChannelBloc {
     await FirebaseFirestore.instance
         .doc("/channels/$channelId/$SUBSCRIBERS_SUB/$targetUserId")
         .set({USERNAME_FIELD: targetUsername});
-
-    // Add channel to user's subscribed_channels
-    await FirebaseFirestore.instance
-        .doc("/$USERS_COLLECTION/$targetUserId/$SUBSCRIBED_CHANNELS_SUB/$channelId")
-        .set({
-      CHANNEL_ID_FIELD: channelId,
-      CHANNEL_NAME_FIELD: _currentChannelName,
-      CURRENT_ALARM_FIELD: alarmChannel.currentAlarm,
-    });
 
     return true;
   }
