@@ -1,4 +1,3 @@
-import "dart:collection";
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -158,85 +157,11 @@ class AlarmChannelBloc {
     return true;
   }
 
-  /// Recounts all the votes in the alarm alarm channel.
-  ///
-  /// To be moved into a Cloud Function.
-  void recountVotes() async {
-    // Fetch all votes from firestore.
-    List<QueryDocumentSnapshot> voteSnapshots = await FirebaseFirestore.instance
-        .collection("/$CHANNELS_COLLECTION/$channelId/$VOTES_SUB")
-        .get()
-        .then((QuerySnapshot querySnapshot) => querySnapshot.docs);
-
-    // Stores the vote counts of an option.
-    HashMap<Timestamp, int> voteCounts = HashMap();
-
-    // Count all votes.
-    for (QueryDocumentSnapshot voteSnapshot in voteSnapshots) {
-      Timestamp timestamp = voteSnapshot.data()[TIME_FIELD];
-      voteCounts[timestamp] = (voteCounts[timestamp] ?? 0) + 1;
-    }
-
-    // Fetch all options from firestore.
-    List<QueryDocumentSnapshot> optionsSnapshots = await FirebaseFirestore.instance
-    .collection("/$CHANNELS_COLLECTION/$channelId/$OPTIONS_SUB")
-    .get()
-    .then((QuerySnapshot querySnapshot) => querySnapshot.docs);
-
-    // Add vote counts to each option in firestore.
-    for (QueryDocumentSnapshot optionSnapshot in optionsSnapshots) {
-      Timestamp? timestamp = optionSnapshot.data()[TIME_FIELD];
-      optionSnapshot.reference.set(
-          {VOTES_FIELD: voteCounts[timestamp] ?? 0}, SetOptions(merge: true));
-    }
-
-    // Calculate highest voted timestamp
-    Timestamp? highestVoted;
-    int highestCount = 0;
-
-    // Find most votes
-    for (Timestamp timestamp in voteCounts.keys) {
-      if (voteCounts[timestamp]! > highestCount) {
-        highestVoted = timestamp;
-        highestCount = voteCounts[timestamp]!;
-      }
-    }
-
-    // Save highest voted option in /users/userId/subscribed_channels/channelId/
-    List<DocumentReference> channelsInSubscribedChannels =
-        await FirebaseFirestore.instance
-            .collectionGroup(SUBSCRIBED_CHANNELS_SUB)
-            .where(CHANNEL_ID_FIELD, isEqualTo: channelId)
-            .get()
-            .then((QuerySnapshot snapshot) => snapshot.docs)
-            .then((List<QueryDocumentSnapshot> docSnaps) => docSnaps
-                .map((QueryDocumentSnapshot docSnap) => docSnap.reference)
-                .toList());
-
-    // Update the highest voted option in the alarm channel
-    await FirebaseFirestore.instance
-        .doc("/$CHANNELS_COLLECTION/$channelId")
-        .set({CURRENT_ALARM_FIELD: highestVoted}, SetOptions(merge: true));
-
-    // Update the highest voted option in each alarm channel under each
-    // subscriber's subscribed_channels
-    for (DocumentReference userAlarmChannel in channelsInSubscribedChannels) {
-      await userAlarmChannel.set({CURRENT_ALARM_FIELD: highestVoted}, SetOptions(merge: true));
-    }
-  }
-
   /// Registers the user's vote.
   void vote(Timestamp timestamp) async {
     await FirebaseFirestore.instance
         .doc("/$CHANNELS_COLLECTION/$channelId/$VOTES_SUB/$userId")
         .set({TIME_FIELD: timestamp});
-
-    // Register vote under the user
-    await FirebaseFirestore.instance.doc("/$USERS_COLLECTION/$userId/$SUBSCRIBED_CHANNELS_SUB/$channelId")
-    .set({HAS_VOTED_FIELD: true}, SetOptions(merge: true));
-
-    // Recount all votes
-    recountVotes();
   }
 
   /// Opts the user out of the current vote.
@@ -244,12 +169,5 @@ class AlarmChannelBloc {
     await FirebaseFirestore.instance
         .doc(("/$CHANNELS_COLLECTION/${alarmChannel.channelId}/$VOTES_SUB/$userId"))
         .delete();
-
-    // Register opt out under the user
-    await FirebaseFirestore.instance.doc("/$USERS_COLLECTION/$userId/$SUBSCRIBED_CHANNELS_SUB/$channelId")
-        .set({HAS_VOTED_FIELD: false}, SetOptions(merge: true));
-
-    // Recount all votes
-    recountVotes();
   }
 }
